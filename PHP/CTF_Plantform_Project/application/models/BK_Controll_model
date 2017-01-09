@@ -1,0 +1,183 @@
+<?php
+defined('BASEPATH') OR exit('Hacked by Hcamael~');
+class Controll_model extends CI_Model {
+
+	function __construct()
+	{
+		parent::__construct();
+		$this -> load -> database();
+	}
+	public function get_all_user()
+	{
+		$sql = "SELECT * FROM CTF_USER ORDER by IS_LOGIN desc, TIME desc";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		return $r;
+	}
+	public function get_setting($v)
+	{
+		$key = ['CURWEEK', 'PUBLIC_NOTICE', 'IS_OPEN'];
+		$week_data = array();
+		$sql = "SELECT * FROM CTF_CONFIG WHERE `KEY`='$key[$v]'";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		if (empty($r)) {
+			$week_data['code'] = 0;
+			$week_data['value'] = "";
+		}
+		else{
+			$week_data['code'] = 1;
+			$week_data['value'] = $r[0]['VALUE'];
+		}
+		return $week_data;
+	}
+	// public function get_week()
+	// {
+	// 	$week_data = array();
+	// 	$sql = "SELECT * FROM CTF_CONFIG WHERE `KEY`='CURWEEK'";
+	// 	$r = $this -> db -> query($sql);
+	// 	$r = $r -> result_array();
+	// 	if (empty($r)) {
+	// 		$week_data['code'] = 0;
+	// 		$week_data['week'] = "";
+	// 	}
+	// 	else{
+	// 		$week_data['code'] = 1;
+	// 		$week_data['week'] = $r[0]['VALUE'];
+	// 	}
+	// 	return $week_data;
+	// }
+	// public function get_notice()
+	// {
+	// 	$notice_data = array();
+	// 	$sql = "SELECT * FROM CTF_CONFIG WHERE `KEY` = 'PUBLIC_NOTICE'";
+	// 	$r = $this -> db -> query($sql);
+	// 	$r = $r -> result_array();
+	// 	if (empty($r)) {
+	// 		$notice_data['code'] = 0;
+	// 		$notice_data['notice'] = "";
+	// 	}
+	// 	else{
+	// 		$notice_data['code'] = 1;
+	// 		$notice_data['notice'] = $r[0]['VALUE'];
+	// 	}
+	// 	return $notice_data;
+	// }
+	public function get_problem_class()
+	{
+		$sql = "SELECT * FROM CTF_PROBLEM_CLASS";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		return $r;
+	}
+	public function get_all_problem()
+	{
+		$sql = "SELECT * FROM CTF_PROBLEM ORDER BY ID";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		return $r;
+	}
+	public function get_problem($id)
+	{
+		$pro_data = array(
+			'code' => 0,
+			'problem' => null,
+		);
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_PROBLEM WHERE ID = '$id'";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		if (!empty($r)) {
+			$pro_data['code'] = 1;
+			$pro_data['problem'] = $r[0];
+		}
+		return $pro_data;
+	}
+	public function update_setting($value, $w)
+	{
+		$key = ['CURWEEK', 'PUBLIC_NOTICE', 'IS_OPEN'];
+		$where['KEY'] = $key[$w];
+		$data['VALUE'] = $value;
+		$table = "CTF_CONFIG";
+		$sql = $this -> db -> update_string($table, $data, $where);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	// public function update_week($value)
+	// {
+	// 	$where['KEY'] = "CURWEEK";
+	// 	$data['VALUE'] = $value;
+	// 	$table = "CTF_CONFIG";
+	// 	$sql = $this -> db -> update_string($table, $data, $where);
+	// 	$r = $this -> db -> query($sql);
+	// 	return $r;
+	// }
+	// public function update_notice($value)
+	// {
+	// 	$where['KEY'] = "PUBLIC_NOTICE";
+	// 	$data['VALUE'] = $value;
+	// 	$table = "CTF_CONFIG";
+	// 	$sql = $this -> db -> update_string($table, $data, $where);
+	// 	$r = $this -> db -> query($sql);
+	// 	return $r;
+	// }
+	public function update_user($data, $id)
+	{
+		$table = 'CTF_USER';
+		$w['ID'] = $id;
+		$sql = $this -> db -> update_string($table, $data, $w);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function update_problem($d, $w)
+	{
+		$table = "CTF_PROBLEM";
+		$where['ID'] = $w;
+		$data = array(
+			'PROBLEM_TITLE' => $d['title'],
+			'PROBLEM_DESCRIBLE' => $d['describe'],
+			'PROBLEM_HINT' => $d['hint'],
+			'WEEK' => $d['week'],
+			'CLASS' => $d['problemclass'],
+			'BASEPOINT' => $d['point'],
+			'FLAG' => trim($d['flag']),
+		);
+		if (strlen($data['PROBLEM_TITLE']) > 64 || strlen($data['FLAG']) > 100) {
+			echo "长度超过限制！";
+			return 0;
+		}
+		$sql = $this -> db -> update_string($table, $data, $where);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function insert_problem($d)
+	{
+		$data = array(
+			'ID' => null,
+			'PROBLEM_TITLE' => $d['title'],
+			'PROBLEM_DESCRIBLE' => $d['describe'],
+			'PROBLEM_HINT' => $d['hint'],
+			'WEEK' => $d['week'],
+			'CLASS' => $d['problemclass'],
+			'BASEPOINT' => $d['point'],
+			'FLAG' => trim($d['flag']),
+			'SOLVED' => 0,
+			'SUBMITTED' => 0
+		);
+		if (strlen($data['PROBLEM_TITLE']) > 64 || strlen($data['FLAG']) > 100) {
+			echo "长度超过限制！";
+			return 0;
+		}
+		$table = "CTF_PROBLEM";
+		$sql = $this -> db -> insert_string($table, $data);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function del_problem($id)
+	{
+		$id = intval($id);
+		$sql = "DELETE FROM CTF_PROBLEM WHERE ID = '$id'";
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+}

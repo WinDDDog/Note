@@ -1,0 +1,250 @@
+<?php
+defined('BASEPATH') OR exit('Hacked by Hcamael~');
+class Platform_model extends CI_Model {
+	function __construct()
+	{
+		parent::__construct();
+		$this -> load -> database();
+	}
+	public function insert_log($value)
+	{
+		$table = "CTF_LOG";
+		$data = array(
+			'USERNAME' => $_SESSION['user']['USERNAME'],
+			'USERID' => $_SESSION['user']['ID'],
+			'PROBLEMID' => $value['problemid'],
+			'SOLVED_TIME' => time(),
+			'SUBMIT_CONTENT' => $value['flag'],
+			'RESULT' => $value['result'],
+			'FINAL_POINT' => $value['fin_point'],
+		);
+		$sql = $this -> db -> insert_string($table, $data);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function update_problem($value, $w)
+	{
+		$table = "CTF_PROBLEM";
+		$sql = $this -> db -> update_string($table, $value, $w);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function update_user($value)
+	{
+		$table = "CTF_USER";
+		$w = array(
+			'USERNAME' => $_SESSION['user']['USERNAME'] ,
+		);
+		$sql = $this -> db -> update_string($table, $value, $w);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	public function get_solved($id)
+	{
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_LOG WHERE PROBLEMID = '$id' AND RESULT = 1 ORDER BY ID";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		return $r;
+	}
+	public function check_repeat($p)
+	{
+		$username = $this -> db -> escape($_SESSION['user']['USERNAME']);
+		$problemid = intval($p);
+		$sql = "SELECT * FROM CTF_LOG WHERE USERNAME=$username AND RESULT=1 AND PROBLEMID='$problemid'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		if (empty($r)) {
+			return 0;
+		}
+		else{
+			return 1;
+		}
+	}
+	public function get_class($id)
+	{
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_PROBLEM_CLASS WHERE ID = '$id'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		return $r;
+	}
+	public function get_user($id)
+	{
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_USER WHERE ID = '$id'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		if (empty($r)) {
+			return $r;
+		}
+		else{
+			return $r[0];
+		}
+	}
+	public function get_proinfo($id)
+	{
+		//需要改
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_PROBLEM WHERE ID='$id'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		if (!empty($r)) {
+			return $r[0];
+		}
+		else{
+			return $r;
+		}
+		
+	}
+	public function get_top_three($id)
+	{
+		$id = intval($id);
+		$sql = "SELECT * FROM CTF_LOG WHERE PROBLEMID='$id' AND RESULT = 1 ORDER BY SOLVED_TIME ASC LIMIT 0, 3";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		return $r;
+	}
+	public function is_done($pro)
+	{
+		$username = $this -> db -> escape($_SESSION['user']['USERNAME']);
+		foreach ($pro as $key => $value) {
+			$sql = "SELECT * FROM CTF_LOG WHERE USERNAME = $username AND RESULT = 1 AND PROBLEMID = $value[ID]";
+			$c = $this -> db -> query($sql);
+			$c = $c ->result_array();
+			if (count($c) == 1) {
+				$pro[$key]['done'] = 1;
+			}
+			else{
+				$pro[$key]['done'] = 0;
+			}
+		}
+		return $pro;
+	}
+	public function get_type($class, $week)
+	{
+		$week = intval($week);
+		$class = $this -> db -> escape($class);
+		$sql = "SELECT * FROM CTF_PROBLEM WHERE CLASS = $class AND WEEK <= '$week'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		$r = $this -> is_done($r); //!!
+		return $r;
+	}
+	public function get_new($week)
+	{
+		$week = intval($week);
+		$sql = "SELECT * FROM CTF_PROBLEM WHERE WEEK = '$week' ORDER BY ID DESC";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		$r = $this -> is_done($r);//!!
+		return $r;
+	}
+	public function get_sublog()
+	{
+		$sql = "SELECT * FROM CTF_LOG WHERE RESULT=1 ORDER BY SOLVED_TIME DESC";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		$n = 0;
+		$re = array();
+		foreach ($r as $key => $value) {
+			if ($n > 4) return $re;
+			$p = $this -> get_proinfo($value['PROBLEMID']);
+			if (!empty($p)) {
+				$re[$n] = $value;
+				$re[$n]['problem'] = $p;
+				$n++;
+			}			
+		}
+	}
+	public function get_last_time($userid)
+	{
+		$userid = intval($userid);
+		$sql = "SELECT * FROM CTF_LOG WHERE USERID='$userid' AND RESULT=1 ORDER BY SOLVED_TIME DESC LIMIT 0, 1";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		return $r;
+	}
+	public function get_mypro()
+	{
+		$username = $this -> db -> escape($_SESSION['user']['USERNAME']);
+		$sql = "SELECT * FROM CTF_LOG WHERE USERNAME = $username AND RESULT = 1";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		foreach ($r as $key => $value) {
+			$r[$key]['pinfo'] = $this -> get_proinfo($value['PROBLEMID']);
+		}
+		return $r;
+	}
+	public function get_rank()
+	{
+		$data = array();
+		$sql = "SELECT * FROM CTF_USER ORDER BY POINT DESC";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		$data['sum'] = count($r);
+		foreach ($r as $key => $value) {
+			if ($value['USERNAME'] == $_SESSION['user']['USERNAME']) {
+				$data['rank'] =$key + 1;
+				break;
+			}
+		}
+		return $data;
+	}
+	public function get_top($i)
+	{
+		$sql = [
+			"SELECT * FROM CTF_USER WHERE `IS_LOGIN` = 1 ORDER BY POINT DESC LIMIT 0, 5",
+			"SELECT * FROM CTF_USER WHERE `IS_LOGIN` = 1 ORDER BY POINT DESC",
+		];
+		$r = $this -> db -> query($sql[$i]);
+		$r = $r ->result_array();
+		return $r;	
+	}
+	public function check_login($user, $pass)
+	{
+		$username = $this -> db -> escape($user);
+		$password = md5($pass);
+		$sql = "SELECT * FROM CTF_USER WHERE USERNAME = $username AND PASSWORD = '$password'";
+		$r = $this -> db -> query($sql);
+		$r = $r ->result_array();
+		return $r;
+	}
+	public function check_user($v)
+	{
+		$username = $this -> db -> escape($v);
+		$sql = "SELECT * FROM CTF_USER WHERE USERNAME = $username";
+		$r = $this -> db -> query($sql);
+		$r = $r -> result_array();
+		return $r;
+	}
+	public function insert_user($value)
+	{
+		$data = array(
+			'TOKEN' => $this -> CreateRandomString(32),
+			'USERNAME' => $value['username'],
+			'PASSWORD' => $value['password'],
+			'EMAIL' => $value['email'],
+			'QQ' => $value['qq'],
+			'POINT' => 0, 
+		);
+		if (strlen($data['USERNAME']) > 64 || strlen($data['EMAIL']) > 64 || strlen($data['QQ']) > 64) {
+			echo "长度超过限制！";
+			return 0;
+		}
+		$table = 'CTF_USER';
+		$sql = $this -> db -> insert_string($table, $data);
+		$r = $this -> db -> query($sql);
+		return $r;
+	}
+	private function CreateRandomString($len)
+	{
+		$str = null;
+		$strPol = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		$max = strlen($strPol)-1;
+		for ($i=0; $i < $len; ++$i) { 
+			$str .= $strPol[mt_rand(0, $max)];
+		}
+		return $str;
+	}
+}

